@@ -15,21 +15,26 @@ Android-пристроях, **без root і без розблокованого
 співрозмовника** — Google заблокував `VOICE_CALL/UPLINK/DOWNLINK` для
 non-privileged додатків з Android 10. Native call recording, який Google
 розкотив у Phone app з листопада 2025 року, **в Україні недоступний**:
-станом на квітень 2026 підтверджені регіони — США, Індія, Німеччина,
-Італія, Іспанія, Румунія, Франція; Україна стабільно у хвості feature
-rollouts через war/sanctions risk-assessment у Google. Region-switch на
+станом на квітень 2026 підтверджені регіони включають США, Індію,
+Німеччину, Італію, Іспанію, Румунію, Францію, Австралію, Канаду,
+Ірландію — Google анонсував "all markets" by end of February 2026 перед
+запуском Pixel 10a, але Україна не у списку підтримуваних регіонів. Сам
+Google каже що feature йде до країн "де call recording не заборонене
+законом", з відповідністю disclosure-tone політики країни. Region-switch на
 Pixel не допомагає — gate комбінований (SIM/MCC, Wi-Fi BSSID, GPS, IP),
 на відміну від Samsung (де CSC-перепрошивка обходить за п'ять хвилин).
 Існуючі обхідні шляхи мають суттєві компроміси (root/Magisk з втратою
 Verified Boot і Play Integrity; закриті бінарники; моно-мікс із
 дисбалансом гучності).
 
-**Cally обходить блокування шляхом ідентифікаційного підлогу всередині
-Shizuku UserService**: ми запускаємось у shell-процесі (UID 2000) і
-прикидаємось пакетом `com.android.shell` — реальним системним пакетом, що
-несе signature-level `RECORD_AUDIO`, `CAPTURE_AUDIO_OUTPUT` та
-`MODIFY_AUDIO_ROUTING`. AudioFlinger валідує (uid=2000, pkg=`com.android.shell`)
-проти package DB і відкриває `VOICE_*` джерела як для системного компонента.
+**Cally обходить блокування через context attribution всередині Shizuku
+UserService**: наш приватний сервіс запускається у shell-процесі (UID 2000),
+і AudioRecord створюється з контекстом, чия attribution співпадає з
+реальним системним пакетом `com.android.shell` — пакетом, який існує у
+package DB з тим самим UID 2000 і несе signature-level `RECORD_AUDIO`,
+`CAPTURE_AUDIO_OUTPUT` та `MODIFY_AUDIO_ROUTING`. AudioFlinger валідує
+комбінацію `(uid=2000, pkg="com.android.shell")` проти package DB — пара
+справжня — і відкриває `VOICE_*` джерела як для системного компонента.
 Деталі — нижче в [«Як працює обхід»](#як-працює-обхід).
 
 ### Юридичний контекст для українських користувачів
@@ -44,9 +49,10 @@ Shizuku UserService**: ми запускаємось у shell-процесі (UI
 - **КК України, Стаття 163** ("порушення таємниці... телефонних розмов")
   таргетує несанкціоновану інтерсепцію зі сторони, не запис учасником
   власної розмови.
-- **ЗУ "Про захист персональних даних", Стаття 25** виключає з-під
-  регулювання обробку даних "виключно для особистих чи побутових потреб"
-  (household exemption, аналог GDPR Art. 2(2)(c)).
+- **ЗУ "Про захист персональних даних" (№ 2297-VI), Стаття 25**
+  ("Обмеження дії цього Закону") виключає з-під регулювання обробку даних,
+  що здійснюється фізичною особою виключно для особистих чи побутових
+  потреб (household exemption, аналог GDPR Art. 2(2)(c)).
 
 Тобто **відсутність beep у Cally — це відповідність українському
 законодавству, а не обхід regulatory вимоги** (на відміну від США/EU,
@@ -54,13 +60,40 @@ Shizuku UserService**: ми запускаємось у shell-процесі (UI
 Phone app саме для compliance з all-party consent юрисдикціями).
 
 > **Caveat:** запис ≠ розповсюдження. Публікація запису без згоди
-> співрозмовника обмежена ЦК Стаття 301 (право на особисте життя) і
-> можливими defamation-позовами. Інструмент для **особистого
-> використання**; за публікацію відповідає користувач.
+> співрозмовника обмежена **ЦК Стаття 306 ч. 2** (право на таємницю
+> кореспонденції — листи, телефонні розмови та інша кореспонденція можуть
+> використовуватись, зокрема шляхом опублікування, лише за згодою сторін),
+> **ЦК Стаття 301** (право на особисте життя), і можливими defamation-позовами.
+> Інструмент для **особистого використання**; за публікацію відповідає
+> користувач.
 >
 > Це загальний огляд, не юридична консультація. Для критичних ситуацій
 > (журналістика, корпоративні розслідування, докази у складних справах) —
 > до українського адвоката, що спеціалізується на information law.
+
+### Користувачам поза Україною
+
+Цей юридичний огляд стосується **виключно української юрисдикції**.
+Юрисдикції суттєво різняться:
+
+- **One-party consent** (як Україна): більшість штатів США (federal +
+  ~38 штатів), Велика Британія (RIPA 2000), Польща (для учасника),
+  Канада, Австралія federal-рівень.
+- **All-party consent / two-party consent**: ~11 штатів США (Каліфорнія,
+  Флорида, Меріленд, Массачусетс, Монтана, Невада, Нью-Гемпшир, Іллінойс,
+  Пенсильванія, Вашингтон, Коннектікут), Німеччина (§ 201 StGB —
+  Vertraulichkeit des Wortes), значна частина континентальної Європи
+  (DACH-регіон, Італія в певних режимах).
+- **GDPR-додатково**: у EU поверх кримінального права діє data-protection
+  framework — навіть participant-recording для не-household потреб може
+  потребувати legal basis.
+
+**Перш ніж використовувати Cally за межами України — перевірте свій
+локальний закон.** Не покладайтесь на українські правила за замовчуванням.
+Особливо обережно якщо: ви розмовляєте з кимось у all-party consent
+юрисдикції; ви плануєте використовувати запис у корпоративному /
+журналістському / судовому контексті, не виключно особистому; ви на
+території EU і обробляєте дані повторно (транскрипція, share, архів).
 
 ## Стек
 
@@ -73,7 +106,7 @@ Phone app саме для compliance з all-party consent юрисдикціям
 | Recording | shell-UID `app_process` через Shizuku · `WrappedShellContext` (impersonate `com.android.shell`) · `AudioRecord.Builder().setContext(...)` на main Looper · 5-step fallback ladder з live-audibility verification |
 | Encoder | AAC у MP4 (`MediaCodec` + `MediaMuxer`, default) або WAV (RIFF, опційно) · per-track |
 | FGS | `type=specialUse` (mic access живе у shell-процесі) + invisible 1×1 overlay як bypass для Android 14+ "FGS from background" |
-| Network | INTERNET permission лише для **опціональної** cloud-транскрипції через user-configured OpenAI-compatible endpoint (за замовчуванням OpenRouter+Gemini Flash, можна self-hosted LM Studio / Ollama). Транскрипція вимикається повністю якщо не введено API ключ. Сам запис аудіо ніколи не торкається мережі. Жодного Firebase/Crashlytics/Sentry/analytics. |
+| Network | INTERNET permission лише для **опціональної** cloud-транскрипції через user-configured OpenAI-compatible chat-completions endpoint з підтримкою `input_audio` content parts (default: OpenRouter+Gemini Flash; self-hosted — детальніше у [Безпека і приватність](#безпека-і-приватність)). Транскрипція вимикається повністю якщо не введено API ключ. Сам запис аудіо ніколи не торкається мережі. Жодного Firebase/Crashlytics/Sentry/analytics. |
 
 `minSdk = 31` (Pixel 6+ запускався на Android 12), `targetSdk = compileSdk = 36` (Android 16).
 
@@ -99,13 +132,17 @@ Shizuku спавнить наш `RecorderService` всередині свого 
 **недостатня** умова: просто запуск у UID 2000 не дає аудіо, бо AudioFlinger
 дивиться не лише на UID, а й на пакет.
 
-### 2. Прикидаємось `com.android.shell`
+### 2. Атрибуція контексту як `com.android.shell`
 
-`userservice/WrappedShellContext.kt` обгортає системний Context і відповідає
-`com.android.shell` на всі identity-запити (`getOpPackageName()`,
-`getPackageName()`, `getAttributionSource()`). Цей пакет реально існує у
-package DB з UID 2000 — AudioFlinger gate `createFromTrustedUidNoPackage`
-валідує (uid=2000, pkg=`com.android.shell`) і пропускає.
+`userservice/WrappedShellContext.kt` обгортає системний Context так, що
+identity-методи (`getOpPackageName()`, `getPackageName()`,
+`getAttributionSource()`) повертають `com.android.shell`. Цей пакет реально
+існує у package DB з UID 2000 — тим самим UID, у якому виконується наш
+shell-процес. AudioFlinger gate `createFromTrustedUidNoPackage` валідує
+комбінацію `(uid=2000, pkg="com.android.shell")` проти package DB і
+пропускає, оскільки ця пара — справжня `(uid, pkg)` комбінація для
+shell-процесу. Це не fake credentials — це валідна attribution для
+процесу, який реально виконується під UID shell.
 
 > Раніше пробували "trusted-UID без пакета" — `AttributionSource.Builder(2000)`
 > без `setPackageName(...)`. Не працює: gate валідує пакет проти DB,
@@ -378,7 +415,7 @@ echo "callrec.signingSha256=<hash>" >> ~/.gradle/gradle.properties
 ## Безпека і приватність
 
 - **Жодного Firebase / Crashlytics / Sentry / analytics / telemetry.** Перевірити можна grep'ом — нуль cloud-SDK у залежностях.
-- **INTERNET permission присутній**, але задіяний винятково для опціональної cloud-транскрипції. Поки користувач не ввів API ключ у Налаштуваннях, мережевих запитів немає взагалі. Endpoint user-configurable — можна вказати self-hosted LM Studio / Ollama / vLLM, тоді аудіо не покидає вашу мережу.
+- **INTERNET permission присутній**, але задіяний винятково для опціональної cloud-транскрипції. Поки користувач не ввів API ключ у Налаштуваннях, мережевих запитів немає взагалі. Endpoint user-configurable — можна вказати self-hosted сервер. Технічна вимога: endpoint має підтримувати OpenAI chat-completions API з `input_audio` content parts (формат gpt-4o-audio / Gemini multimodal, **не** Whisper transcription API). Робочі self-hosted варіанти станом на 2026: **vLLM-Omni з Qwen2.5-Omni-7B** ([docs.vllm.ai/projects/vllm-omni](https://docs.vllm.ai/projects/vllm-omni/)), **vLLM з Gemma 4 E2B/E4B** (audio multimodal, mid-2025+). Standard vLLM serve для Qwen2.5-Omni наразі тільки text output (thinker mode); для audio-input через chat-completions потрібен саме vLLM-Omni fork. Whisper-only сервери (whisper.cpp, faster-whisper) поточним кодом не підтримуються — у них інший endpoint format. У self-hosted режимі аудіо не покидає вашу мережу.
 - **Сам запис аудіо ніколи не торкається мережі.** Файли пишуться у `Android/data/dev.lyo.callrec/files/recordings/` і залишаються там до експорту самим користувачем.
 - `RecorderService.verifyCaller()` перевіряє UID + SHA-256 release-cert на КОЖНИЙ AIDL-виклик. З `daemon=true` сервіс живе після нашого app — це захист від іншого Shizuku-permitted додатку, який міг би теоретично знайти наш Binder.
 - `data_extraction_rules.xml` + `backup_rules.xml` забороняють adb-backup та cloud-restore.

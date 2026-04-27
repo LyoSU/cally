@@ -66,6 +66,15 @@
 
 Не у публічних issues — див. [SECURITY.md](SECURITY.md).
 
+## Ще документація
+
+- [`PRIVACY.md`](PRIVACY.md) — точний perimeter обробки даних.
+- [`docs/architecture.md`](docs/architecture.md) — публічний overview архітектури.
+- [`docs/threat-model.md`](docs/threat-model.md) — від чого захищаємо, від чого ні.
+- [`docs/device-matrix.md`](docs/device-matrix.md) — реальні результати на конкретних пристроях.
+- [`RELEASING.md`](RELEASING.md) — обов'язкові правила релізного процесу і версіонування.
+- [`CLAUDE.md`](CLAUDE.md) — інструкції для AI-агентів, що працюють з кодом.
+
 ## Ліцензія
 
 Усі контрибуції — під GPL-3.0-or-later (як решта коду). Submitting PR = згода на цю ліцензію без додаткового CLA.
