@@ -1,0 +1,52 @@
+version: 2
+updates:
+  # Gradle dependencies — eat upgrades weekly to avoid drift.
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Europe/Kyiv"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # Pin Material 3 — alpha bumps need manual review (Expressive surface API changes).
+    ignore:
+      - dependency-name: "androidx.compose.material3:material3"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+    groups:
+      androidx-non-compose:
+        patterns:
+          - "androidx.core:*"
+          - "androidx.activity:*"
+          - "androidx.lifecycle:*"
+          - "androidx.media:*"
+          - "androidx.navigation:*"
+          - "androidx.datastore:*"
+      compose:
+        patterns:
+          - "androidx.compose.*"
+        exclude-patterns:
+          - "androidx.compose.material3:material3"
+      kotlin-and-coroutines:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "org.jetbrains.kotlinx:*"
+      build-tools:
+        patterns:
+          - "com.android.tools.build:*"
+          - "com.google.devtools.ksp:*"
+
+  # GitHub Actions versions — keep up to date.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "ci"
+    commit-message:
+      prefix: "ci"
