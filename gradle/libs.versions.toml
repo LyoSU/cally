@@ -43,7 +43,7 @@ hiddenapibypass = "4.3"
 
 # Testing
 junit = "4.13.2"
-truth = "1.4.4"
+truth = "1.4.5"
 androidx-test-ext = "1.2.1"
 androidx-test-runner = "1.6.2"
 espresso = "3.6.1"
