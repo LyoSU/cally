@@ -39,7 +39,7 @@ serialization = "1.7.3"
 
 # IPC / privileged
 shizuku = "13.1.5"
-hiddenapibypass = "4.3"
+hiddenapibypass = "6.1"
 
 # Testing
 junit = "4.13.2"
