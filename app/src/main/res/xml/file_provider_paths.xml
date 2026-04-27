@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- getExternalFilesDir(null)/recordings — see RecordingStorage. -->
+    <external-files-path name="recordings" path="recordings/" />
+    <cache-path name="exports" path="export/" />
+</paths>

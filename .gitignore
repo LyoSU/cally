@@ -1,0 +1,26 @@
+*.iml
+.gradle
+.kotlin/
+local.properties
+.idea/
+build/
+captures/
+.externalNativeBuild
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+.DS_Store
+keystore.properties
+*.jks
+*.keystore
+
+# Local-only scratch / research / notes — not part of the published source.
+apk_extracted/
+notes/
+research/
+scratch/
+
+# Internal engineering doc — kept locally, not part of the public release.
+IMPLEMENTATION_GUIDE.md

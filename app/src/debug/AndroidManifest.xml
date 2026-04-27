@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+          Debug-only seed activity. Triggered via:
+            adb shell am start -n dev.lyo.callrec.debug/dev.lyo.callrec.debug.SeedDataActivity
+          Wipes the recordings DB and inserts eight realistic-looking calls
+          so we can grab screenshots without staging real conversations.
+        -->
+        <activity
+            android:name="dev.lyo.callrec.debug.SeedDataActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:label="Seed Data" />
+    </application>
+</manifest>

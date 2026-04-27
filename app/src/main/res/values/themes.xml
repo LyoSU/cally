@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Splash uses the platform splash screen API. Real Material 3 Expressive
+      theme is composed in Kotlin (ui/theme/Theme.kt) so we can switch between
+      dynamic colors (Material You, S+) and a curated fallback palette.
+    -->
+    <style name="Theme.Callrec.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/seed</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Callrec</item>
+    </style>
+
+    <style name="Theme.Callrec" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/surface</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+    </style>
+</resources>
