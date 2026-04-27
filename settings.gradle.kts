@@ -16,7 +16,7 @@ pluginManagement {
 // installed locally. Without this Gradle prints "Cannot find a Java installation"
 // on machines with only JDK 17.
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.10.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 dependencyResolutionManagement {
