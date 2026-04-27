@@ -27,7 +27,7 @@ material-icons = "1.7.6"
 # graphics-shapes — Material 3 Expressive shape morphing + the 35-shape
 # library (Pill, Cookie9Sided, Sunny, etc). Pulled in alongside material3
 # for shape morphing in the recording pulse and play/pause toggle.
-graphics-shapes = "1.0.1"
+graphics-shapes = "1.1.0"
 
 # Persistence
 room = "2.7.0"
