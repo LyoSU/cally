@@ -4,7 +4,7 @@
 [versions]
 # Build tools
 agp = "8.9.1"
-kotlin = "2.1.20"
+kotlin = "2.3.21"
 ksp = "2.1.20-1.0.31"
 
 # AndroidX core
@@ -34,8 +34,8 @@ room = "2.7.0"
 datastore = "1.2.1"
 
 # Coroutines / serialization
-coroutines = "1.10.1"
-serialization = "1.7.3"
+coroutines = "1.11.0"
+serialization = "1.11.0"
 
 # IPC / privileged
 shizuku = "13.1.5"
