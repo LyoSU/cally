@@ -3,7 +3,7 @@
 
 [versions]
 # Build tools
-agp = "8.9.1"
+agp = "9.2.1"
 kotlin = "2.1.20"
 ksp = "2.1.20-1.0.31"
 
