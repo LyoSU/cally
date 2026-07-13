@@ -5,7 +5,7 @@
 # Build tools
 agp = "8.9.1"
 kotlin = "2.1.20"
-ksp = "2.1.20-1.0.31"
+ksp = "2.3.10"
 
 # AndroidX core
 core-ktx = "1.18.0"
