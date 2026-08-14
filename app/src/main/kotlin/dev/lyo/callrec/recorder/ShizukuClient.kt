@@ -142,7 +142,15 @@ class ShizukuClient(private val ctx: Context) {
 
     fun unbind(remove: Boolean = false) {
         runCatching { Shizuku.unbindUserService(args, conn, remove) }
-        _health.value = if (Shizuku.pingBinder()) DaemonHealth.NoPermission else DaemonHealth.NotRunning
+        // Voluntarily dropping our own binding doesn't mean permission was
+        // revoked — re-check checkSelfPermission() instead of assuming
+        // NoPermission, or every call-end falsely re-triggers the
+        // "permission needed" notification/onboarding prompt.
+        _health.value = when {
+            !Shizuku.pingBinder() -> DaemonHealth.NotRunning
+            Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED -> DaemonHealth.NoPermission
+            else -> DaemonHealth.NotRunning
+        }
     }
 
     fun refresh() = recompute()
