@@ -96,7 +96,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import dev.lyo.callrec.R
 import dev.lyo.callrec.contacts.ContactResolver
@@ -106,6 +105,7 @@ import dev.lyo.callrec.recorder.DaemonHealth
 import dev.lyo.callrec.recorder.Strategy
 import dev.lyo.callrec.storage.BulkOps
 import dev.lyo.callrec.storage.CallRecord
+import dev.lyo.callrec.storage.RecordingPaths
 import dev.lyo.callrec.telephony.CallMonitorService
 import dev.lyo.callrec.telephony.CallMonitorService.Companion.MODE_VOICE_MEMO
 import dev.lyo.callrec.ui.components.LiveLevelMeter
@@ -117,7 +117,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -197,7 +196,7 @@ fun PrimaryScreen(
             SnackbarResult.ActionPerformed -> pendingDeletion.value = null
             SnackbarResult.Dismissed -> {
                 withContext(Dispatchers.IO) {
-                    BulkOps.deleteFiles(listOf(rec))
+                    BulkOps.deleteFiles(ctx, listOf(rec))
                     container.db.calls().delete(rec.callId)
                 }
                 pendingDeletion.value = null
@@ -331,7 +330,7 @@ fun PrimaryScreen(
                     selected.clear()
                     manualSelectMode = false
                     scope.launch(Dispatchers.IO) {
-                        BulkOps.deleteFiles(toDelete)
+                        BulkOps.deleteFiles(ctx, toDelete)
                         container.db.calls().deleteAll(ids)
                     }
                 }) { Text(stringResource(R.string.playback_delete_confirm)) }
@@ -1096,10 +1095,7 @@ private fun EmptyState(
 
 private fun shareMultiple(ctx: Context, records: List<CallRecord>) {
     if (records.isEmpty()) return
-    val authority = "${ctx.packageName}.fileprovider"
-    val uris = records.mapNotNull {
-        runCatching { FileProvider.getUriForFile(ctx, authority, File(it.uplinkPath)) }.getOrNull()
-    }
+    val uris = records.mapNotNull { RecordingPaths.shareUri(ctx, it.uplinkPath) }
     if (uris.isEmpty()) return
     val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
         type = "audio/*"

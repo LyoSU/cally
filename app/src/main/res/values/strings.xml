@@ -142,6 +142,17 @@
     <string name="settings_section_about">Про додаток</string>
     <string name="settings_version">Версія</string>
     <string name="settings_storage_path">Папка записів</string>
+    <string name="settings_storage_path_subtitle">Торкнись, щоб обрати іншу папку</string>
+    <string name="settings_storage_internal">Внутрішня пам\'ять</string>
+    <string name="settings_folder_reset_title">Скинути до типової папки</string>
+    <string name="settings_folder_reset_subtitle">Нові записи знову зберігатимуться у приватній папці додатку</string>
+    <string name="settings_folder_migrate_title">Перемістити наявні записи?</string>
+    <string name="settings_folder_migrate_message">У новій папці записи будуть доступні іншим застосункам (файловим менеджерам, бекапу). Перемістити вже наявні записи з приватної папки додатку туди?</string>
+    <string name="settings_folder_migrate_confirm">Перемістити</string>
+    <string name="settings_folder_migrate_skip">Не зараз</string>
+    <string name="settings_folder_migrating_title">Переміщення записів…</string>
+    <string name="settings_folder_migration_done">Переміщено записів: %1$d</string>
+    <string name="settings_folder_migration_done_with_failures">Переміщено %1$d, не вдалося перемістити %2$d</string>
     <string name="settings_legal_title">Юридичне попередження</string>
     <string name="settings_legal_subtitle">Огляд правил для запису розмов</string>
 

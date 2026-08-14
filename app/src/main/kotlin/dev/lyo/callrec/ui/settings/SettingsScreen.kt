@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 package dev.lyo.callrec.ui.settings
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.DocumentsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,11 +27,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
@@ -34,6 +41,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
@@ -54,8 +62,11 @@ import dev.lyo.callrec.BuildConfig
 import dev.lyo.callrec.R
 import dev.lyo.callrec.di.AppContainer
 import dev.lyo.callrec.settings.RecordingFormat
+import dev.lyo.callrec.storage.FolderMigrationJob
+import dev.lyo.callrec.storage.RecordingPaths
 import dev.lyo.callrec.ui.components.strategyQuality
 import dev.lyo.callrec.ui.legal.LegalDisclaimerSheet
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 @Composable
@@ -82,6 +93,47 @@ fun SettingsScreen(
     val snackbar = remember { SnackbarHostState() }
     val cleanupAppliedMsg = stringResource(R.string.settings_cleanup_applied)
     var showLegalSheet by remember { mutableStateOf(false) }
+
+    val recordingFolderUri by container.settings.recordingFolderUri.collectAsState(initial = null)
+    var pendingFolderUri by remember { mutableStateOf<Uri?>(null) }
+    val migrationProgress by FolderMigrationJob.progress.collectAsState(initial = null)
+    val internalStorageLabel = stringResource(R.string.settings_storage_internal)
+    val migrationDoneMsg = stringResource(R.string.settings_folder_migration_done)
+    val migrationDoneWithFailuresMsg = stringResource(R.string.settings_folder_migration_done_with_failures)
+
+    fun releaseFolderGrant(uriString: String) {
+        runCatching {
+            ctx.contentResolver.releasePersistableUriPermission(
+                Uri.parse(uriString),
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
+        }
+    }
+
+    val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            recordingFolderUri?.let { releaseFolderGrant(it) }
+            runCatching {
+                ctx.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                )
+            }
+            container.settings.setRecordingFolderUri(uri.toString())
+            val hasLegacyRecordings = container.db.calls().selectAllFinalised().any { row ->
+                !RecordingPaths.isSaf(row.uplinkPath) ||
+                    row.downlinkPath?.let { !RecordingPaths.isSaf(it) } == true
+            }
+            if (hasLegacyRecordings) pendingFolderUri = uri
+        }
+    }
+    val onResetFolder: () -> Unit = {
+        scope.launch {
+            recordingFolderUri?.let { releaseFolderGrant(it) }
+            container.settings.setRecordingFolderUri(null)
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(modifier = Modifier
@@ -273,11 +325,22 @@ fun SettingsScreen(
                         value = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                     )
                     Divider()
-                    InfoRow(
+                    LinkRow(
                         title = stringResource(R.string.settings_storage_path),
-                        value = ctx.getExternalFilesDir(null)?.resolve("recordings")?.absolutePath
-                            ?: ctx.filesDir.resolve("recordings").absolutePath,
+                        subtitle = recordingFolderUri
+                            ?.let { formatTreeUri(it, internalStorageLabel) }
+                            ?: (ctx.getExternalFilesDir(null)?.resolve("recordings")?.absolutePath
+                                ?: ctx.filesDir.resolve("recordings").absolutePath),
+                        onClick = { folderPicker.launch(null) },
                     )
+                    if (recordingFolderUri != null) {
+                        Divider()
+                        LinkRow(
+                            title = stringResource(R.string.settings_folder_reset_title),
+                            subtitle = stringResource(R.string.settings_folder_reset_subtitle),
+                            onClick = onResetFolder,
+                        )
+                    }
                     Divider()
                     LinkRow(
                         title = stringResource(R.string.settings_legal_title),
@@ -304,8 +367,72 @@ fun SettingsScreen(
                 onDismiss = { showLegalSheet = false },
             )
         }
+
+        pendingFolderUri?.let { target ->
+            AlertDialog(
+                onDismissRequest = { pendingFolderUri = null },
+                title = { Text(stringResource(R.string.settings_folder_migrate_title)) },
+                text = { Text(stringResource(R.string.settings_folder_migrate_message)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        pendingFolderUri = null
+                        container.appScope.launch {
+                            val result = FolderMigrationJob.run(ctx.applicationContext, container.db, target)
+                            val msg = if (result.failed == 0) {
+                                String.format(Locale.getDefault(), migrationDoneMsg, result.done)
+                            } else {
+                                String.format(
+                                    Locale.getDefault(),
+                                    migrationDoneWithFailuresMsg,
+                                    result.done,
+                                    result.failed,
+                                )
+                            }
+                            snackbar.showSnackbar(msg)
+                        }
+                    }) { Text(stringResource(R.string.settings_folder_migrate_confirm)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingFolderUri = null }) {
+                        Text(stringResource(R.string.settings_folder_migrate_skip))
+                    }
+                },
+            )
+        }
+
+        migrationProgress?.let { p ->
+            AlertDialog(
+                onDismissRequest = {},
+                confirmButton = {},
+                title = { Text(stringResource(R.string.settings_folder_migrating_title)) },
+                text = {
+                    Column {
+                        LinearProgressIndicator(
+                            progress = { if (p.total > 0) p.done / p.total.toFloat() else 0f },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text("${p.done}/${p.total}")
+                    }
+                },
+            )
+        }
     }
 }
+
+/**
+ * Best-effort human-friendly rendering of a SAF tree URI — Android exposes no
+ * real filesystem path for these, so we decode the tree document ID (e.g.
+ * `primary:Download/Cally` → "Внутрішня пам'ять/Download/Cally"), falling
+ * back to the raw URI's last segment if the format doesn't match.
+ */
+private fun formatTreeUri(uri: String, internalStorageLabel: String): String = runCatching {
+    val docId = DocumentsContract.getTreeDocumentId(Uri.parse(uri))
+    val parts = docId.split(":", limit = 2)
+    val volume = if (parts.getOrNull(0) == "primary") internalStorageLabel else parts.getOrNull(0).orEmpty()
+    val subPath = parts.getOrNull(1)?.takeIf { it.isNotBlank() }
+    if (subPath != null) "$volume/$subPath" else volume
+}.getOrDefault(Uri.parse(uri).lastPathSegment ?: uri)
 
 @Composable
 private fun SectionHeader(text: String) {

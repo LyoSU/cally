@@ -10,7 +10,7 @@ import dev.lyo.callrec.cleanup.CleanupJob
 import dev.lyo.callrec.di.AppContainer
 import dev.lyo.callrec.notify.DaemonHealthNotification
 import dev.lyo.callrec.notify.NotificationChannels
-import java.io.File
+import dev.lyo.callrec.storage.RecordingPaths
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -59,7 +59,7 @@ class App : Application() {
         // on Dispatchers.IO — the launch returns immediately and never
         // blocks Application.onCreate or the main thread.
         container.appScope.launch {
-            runCatching { CleanupJob.runOnce(container.settings, container.db) }
+            runCatching { CleanupJob.runOnce(applicationContext, container.settings, container.db) }
                 .onFailure { Log.w("Callrec", "[App] cleanup failed: ${it.message}", it) }
         }
         // Reconcile DB rows against the filesystem: if the user (or another
@@ -78,8 +78,8 @@ class App : Application() {
         val dao = container.db.calls()
         val rows = dao.selectAllFinalised()
         val orphans = rows.filter { rec ->
-            val upGone = !File(rec.uplinkPath).exists()
-            val dnGone = rec.downlinkPath?.let { !File(it).exists() } ?: true
+            val upGone = !RecordingPaths.exists(applicationContext, rec.uplinkPath)
+            val dnGone = rec.downlinkPath?.let { !RecordingPaths.exists(applicationContext, it) } ?: true
             upGone && dnGone
         }
         if (orphans.isEmpty()) return

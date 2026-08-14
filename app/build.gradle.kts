@@ -139,6 +139,7 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
     implementation(libs.datastore.preferences)
+    implementation(libs.androidx.documentfile)
 
     // Coroutines + serialization
     implementation(libs.kotlinx.coroutines.android)

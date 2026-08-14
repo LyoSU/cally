@@ -1,15 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 package dev.lyo.callrec.codec
 
+import android.os.ParcelFileDescriptor
 import dev.lyo.callrec.storage.RecordingFile
-import java.io.RandomAccessFile
+import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.channels.FileChannel
 
 /**
- * RIFF/WAV writer. Keeps the file open as a [RandomAccessFile] so the final
- * close can rewrite the placeholder RIFF/data chunk sizes — otherwise VLC
- * (and any spec-strict decoder) refuses files that don't match the header.
+ * RIFF/WAV writer. Keeps the file open as a [FileChannel] so the final close
+ * can rewrite the placeholder RIFF/data chunk sizes — otherwise VLC (and any
+ * spec-strict decoder) refuses files that don't match the header.
+ *
+ * FileChannel (rather than RandomAccessFile) because the underlying sink may
+ * be a SAF `content://` document — [RecordingFile.openWriteFd] hands back a
+ * [ParcelFileDescriptor] either way, and RandomAccessFile has no public
+ * constructor from an arbitrary FileDescriptor.
  *
  * Why hand-rolled vs MediaMuxer:
  *  - MediaMuxer's MUXER_OUTPUT_OGG only takes Opus/Vorbis, MUXER_OUTPUT_MPEG_4
@@ -20,7 +27,8 @@ import java.nio.ByteOrder
  */
 class WavEncoder(private val file: RecordingFile) : PcmEncoder {
 
-    private lateinit var raf: RandomAccessFile
+    private lateinit var pfd: ParcelFileDescriptor
+    private lateinit var channel: FileChannel
     private var sampleRate = 0
     private var channels = 0
     private var dataBytes = 0L
@@ -31,39 +39,41 @@ class WavEncoder(private val file: RecordingFile) : PcmEncoder {
         require(channelCount in 1..2) { "channels must be 1 or 2" }
         sampleRate = sampleRateHz
         channels = channelCount
-        raf = RandomAccessFile(file.openOrCreate(), "rw")
-        raf.setLength(0)
+        pfd = file.openWriteFd()
+        channel = FileOutputStream(pfd.fileDescriptor).channel
+        channel.truncate(0)
         // Placeholder header. Sizes get rewritten on close().
-        raf.write(buildHeader(dataLen = 0))
+        channel.write(ByteBuffer.wrap(buildHeader(dataLen = 0)))
     }
 
     override fun writePcm(buf: ByteArray, off: Int, len: Int) {
         if (len <= 0) return
-        raf.write(buf, off, len)
+        channel.write(ByteBuffer.wrap(buf, off, len))
         dataBytes += len
         bytesSinceHeaderRefresh += len
         // header refreshed periodically so a hard kill leaves a playable file
         if (bytesSinceHeaderRefresh >= HEADER_REFRESH_INTERVAL_BYTES) {
-            val savedPos = raf.filePointer
-            raf.seek(0)
+            val savedPos = channel.position()
+            channel.position(0)
             val truncated = dataBytes.coerceAtMost(0xFFFFFFFFL).toInt()
-            raf.write(buildHeader(dataLen = truncated))
-            raf.seek(savedPos)
+            channel.write(ByteBuffer.wrap(buildHeader(dataLen = truncated)))
+            channel.position(savedPos)
             bytesSinceHeaderRefresh = 0L
         }
     }
 
     override fun close() {
         try {
-            raf.seek(0)
+            channel.position(0)
             // dataBytes can exceed Int.MAX_VALUE for ~3+ hour calls at 16k/16-bit;
             // the WAV format has a 32-bit unsigned size field, so we cap at
             // UINT32_MAX (~4 GB). Real-world calls never come close.
             val truncated = dataBytes.coerceAtMost(0xFFFFFFFFL).toInt()
-            raf.write(buildHeader(dataLen = truncated))
+            channel.write(ByteBuffer.wrap(buildHeader(dataLen = truncated)))
         } finally {
-            runCatching { raf.fd.sync() }
-            runCatching { raf.close() }
+            runCatching { channel.force(true) }
+            runCatching { channel.close() }
+            runCatching { pfd.close() }
         }
     }
 

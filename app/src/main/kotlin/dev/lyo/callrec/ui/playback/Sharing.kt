@@ -7,6 +7,7 @@ import androidx.core.content.FileProvider
 import dev.lyo.callrec.codec.AudioMixer
 import dev.lyo.callrec.core.L
 import dev.lyo.callrec.storage.CallRecord
+import dev.lyo.callrec.storage.RecordingPaths
 import java.io.File
 import java.util.Locale
 
@@ -17,6 +18,11 @@ import java.util.Locale
  *  - [shareSeparate]: dual-track → ACTION_SEND_MULTIPLE with both files.
  *  - [shareStereoMix]: dual-track → mix to one stereo .wav, then SEND.
  *
+ * Recordings living in a user-picked SAF folder are shared via their own
+ * `content://` document URI directly ([RecordingPaths.shareUri]) — no
+ * FileProvider needed, the persisted grant we hold is itself forwardable.
+ * Legacy app-private recordings still go through FileProvider.
+ *
  * Stereo mixes are cached under `cacheDir/export/<callId>-stereo.wav` (also
  * exposed by the FileProvider's `cache-path/export` mapping). The cache is
  * invalidated by mtime: if either source file is newer than the cached mix,
@@ -26,12 +32,9 @@ import java.util.Locale
 internal object Sharing {
 
     fun shareSingle(ctx: Context, rec: CallRecord) {
-        val authority = "${ctx.packageName}.fileprovider"
-        val file = File(rec.uplinkPath)
-        val uri = runCatching { FileProvider.getUriForFile(ctx, authority, file) }.getOrNull()
-            ?: return
+        val uri = RecordingPaths.shareUri(ctx, rec.uplinkPath) ?: return
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type = mimeFor(file)
+            type = mimeFor(ctx, rec.uplinkPath)
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
@@ -39,18 +42,15 @@ internal object Sharing {
     }
 
     fun shareSeparate(ctx: Context, rec: CallRecord) {
-        val authority = "${ctx.packageName}.fileprovider"
-        val files = buildList {
-            add(File(rec.uplinkPath))
-            rec.downlinkPath?.let { add(File(it)) }
+        val paths = buildList {
+            add(rec.uplinkPath)
+            rec.downlinkPath?.let { add(it) }
         }
-        val uris = files.mapNotNull {
-            runCatching { FileProvider.getUriForFile(ctx, authority, it) }.getOrNull()
-        }
+        val uris = paths.mapNotNull { RecordingPaths.shareUri(ctx, it) }
         if (uris.isEmpty()) return
         val intent = if (uris.size == 1) {
             Intent(Intent.ACTION_SEND).apply {
-                type = mimeFor(files.first())
+                type = mimeFor(ctx, paths.first())
                 putExtra(Intent.EXTRA_STREAM, uris.first())
             }
         } else {
@@ -85,8 +85,12 @@ internal object Sharing {
 
     /** Returns cached mix if valid, otherwise rebuilds. Null on decode failure. */
     private fun buildOrReuseStereoMix(ctx: Context, rec: CallRecord): File? {
-        val downlink = rec.downlinkPath?.let { File(it) } ?: return null
-        val uplink = File(rec.uplinkPath)
+        val downlinkPath = rec.downlinkPath ?: return null
+        // Materialize first — AudioMixer/PcmDecoder decode via plain File I/O;
+        // a SAF-stored recording is copied into cacheDir once (reused after
+        // that, since finalised recordings never change).
+        val uplink = RecordingPaths.materializeToCache(ctx, rec.uplinkPath) ?: return null
+        val downlink = RecordingPaths.materializeToCache(ctx, downlinkPath) ?: return null
         val out = File(ctx.cacheDir, "export/${rec.callId}-stereo.wav")
         if (out.exists() && out.lastModified() >= maxOf(uplink.lastModified(), downlink.lastModified())) {
             L.i(TAG, "stereo cache hit → ${out.path}")
@@ -96,11 +100,14 @@ internal object Sharing {
         return AudioMixer.mixToStereoWav(uplink, downlink, out)
     }
 
-    private fun mimeFor(f: File): String = when (f.extension.lowercase(Locale.US)) {
-        "wav" -> "audio/wav"
-        "m4a", "mp4", "aac" -> "audio/mp4"
-        "ogg", "opus" -> "audio/ogg"
-        else -> "audio/*"
+    private fun mimeFor(ctx: Context, path: String): String {
+        val name = RecordingPaths.displayName(ctx, path) ?: path
+        return when (name.substringAfterLast('.', "").lowercase(Locale.US)) {
+            "wav" -> "audio/wav"
+            "m4a", "mp4", "aac" -> "audio/mp4"
+            "ogg", "opus" -> "audio/ogg"
+            else -> "audio/*"
+        }
     }
 
     private const val TAG = "Sharing"

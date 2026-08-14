@@ -29,6 +29,10 @@ private val Context.dataStore by preferencesDataStore(name = "callrec.settings")
  */
 class AppContainer(private val ctx: Context) {
 
+    /** Application context — for callers (e.g. [dev.lyo.callrec.transcription.TranscribeJob])
+     *  that only hold a reference to the container, not an Android [Context]. */
+    val appContext: Context get() = ctx.applicationContext
+
     /** Long-lived scope for foreground services and one-shot persistence work. */
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -36,10 +40,24 @@ class AppContainer(private val ctx: Context) {
 
     val db: RecordingsDb by lazy { RecordingsDb.create(ctx) }
 
+    /**
+     * Hot StateFlow mirror of the recording-folder setting, same rationale as
+     * [recordingFormat]: [RecordingStorage.create] runs synchronously off the
+     * pump-spawning thread, not a coroutine, so it can't suspend on a
+     * DataStore read.
+     */
+    val recordingFolderUri: StateFlow<String?> by lazy {
+        settings.recordingFolderUri.stateIn(
+            scope = appScope,
+            started = SharingStarted.Eagerly,
+            initialValue = null,
+        )
+    }
+
     val storage: RecordingStorage by lazy {
         RecordingStorage(
             appCtx = ctx.applicationContext,
-            settings = settings,
+            folderUriProvider = { recordingFolderUri.value },
         )
     }
 
