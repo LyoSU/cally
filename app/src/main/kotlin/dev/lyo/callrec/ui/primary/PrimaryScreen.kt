@@ -180,11 +180,17 @@ fun PrimaryScreen(
     val snackbarHost = remember { SnackbarHostState() }
     val avatarCache = remember { mutableStateMapOf<String, String?>() }
 
+    // Resolved in composition rather than inside the effect: a resource read
+    // through LocalContext bypasses Compose's locale tracking, so the snackbar
+    // would keep the language the app started in after a per-app language change.
+    val deletedMsg = stringResource(R.string.library_deleted)
+    val undoLabel = stringResource(R.string.playback_delete_cancel)
+
     LaunchedEffect(pendingDeletion.value) {
         val rec = pendingDeletion.value ?: return@LaunchedEffect
         val result = snackbarHost.showSnackbar(
-            message = ctx.getString(R.string.library_deleted),
-            actionLabel = ctx.getString(R.string.playback_delete_cancel),
+            message = deletedMsg,
+            actionLabel = undoLabel,
             withDismissAction = false,
         )
         when (result) {
@@ -317,15 +323,7 @@ fun PrimaryScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text(stringResource(R.string.playback_delete_title)) },
-            text = {
-                Text(
-                    String.format(
-                        Locale.getDefault(),
-                        ctx.getString(R.string.library_delete_bulk_msg),
-                        toDelete.size,
-                    ),
-                )
-            },
+            text = { Text(stringResource(R.string.library_delete_bulk_msg, toDelete.size)) },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteDialog = false
@@ -416,11 +414,7 @@ private fun SelectionTopBar(
         }
         Spacer(Modifier.size(4.dp))
         Text(
-            text = String.format(
-                Locale.getDefault(),
-                stringResource(R.string.primary_selection_count),
-                count,
-            ),
+            text = stringResource(R.string.primary_selection_count, count),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f),
@@ -1026,11 +1020,7 @@ private fun avatarColors(seed: String?, isSelected: Boolean): Pair<Color, Color>
 private fun EmptySearch(query: String) {
     EmptyState(
         icon = Icons.Outlined.Search,
-        title = String.format(
-            Locale.getDefault(),
-            stringResource(R.string.primary_empty_search),
-            query,
-        ),
+        title = stringResource(R.string.primary_empty_search, query),
         hint = null,
     )
 }

@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 package dev.lyo.callrec.telephony
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
+import androidx.annotation.RequiresPermission
+import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import dev.lyo.callrec.core.L
+import dev.lyo.callrec.permissions.AppPermissions
 
 /**
  * Tells a real SIM call apart from a third-party VoIP call.
@@ -38,6 +43,16 @@ object CellularCall {
      * the one job it has — so uncertainty resolves towards recording.
      */
     fun isActive(ctx: Context): Boolean {
+        // READ_PHONE_STATE is a runtime permission the user can revoke at any
+        // time. Without it we genuinely cannot tell a SIM call from a VoIP
+        // one, so say so explicitly rather than letting the SecurityException
+        // fall into the catch below and read as a probe failure.
+        if (ContextCompat.checkSelfPermission(ctx, AppPermissions.READ_PHONE_STATE) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            L.w("Receiver", "READ_PHONE_STATE revoked — cannot classify call, assuming SIM")
+            return true
+        }
         val tm = ctx.getSystemService<TelephonyManager>() ?: return true
         return runCatching {
             val subIds = activeSubscriptionIds(ctx)
@@ -60,6 +75,8 @@ object CellularCall {
         }
     }
 
+    /** Callers must hold READ_PHONE_STATE — [isActive] checks it before calling. */
+    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
     private fun activeSubscriptionIds(ctx: Context): List<Int> = runCatching {
         ctx.getSystemService<SubscriptionManager>()
             ?.activeSubscriptionInfoList

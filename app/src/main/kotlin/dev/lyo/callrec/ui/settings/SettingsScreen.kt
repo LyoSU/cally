@@ -172,13 +172,12 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(Modifier.height(12.dp))
+                        val calibrationDone = stringResource(R.string.settings_calibration_done)
                         OutlinedButton(
                             onClick = {
                                 scope.launch {
                                     container.capabilities.clear()
-                                    snackbar.showSnackbar(
-                                        ctx.getString(R.string.settings_calibration_done),
-                                    )
+                                    snackbar.showSnackbar(calibrationDone)
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
