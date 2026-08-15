@@ -106,7 +106,10 @@ fun OnboardingScreen(
 
     val shizukuInstalled = state !is DaemonHealth.NotInstalled
     val shizukuActivated = state !is DaemonHealth.NotInstalled && state !is DaemonHealth.NotRunning
-    val shizukuPermitted = state is DaemonHealth.Bound
+    // Idle is only ever set after checkSelfPermission() came back GRANTED, so
+    // it satisfies this step just as much as Bound does — otherwise returning
+    // to onboarding between calls would show the grant as undone.
+    val shizukuPermitted = state is DaemonHealth.Bound || state is DaemonHealth.Idle
 
     // canDrawOverlays / battery have no change broadcast — re-read on every
     // RESUME instead of an 800 ms infinite poll. The system Settings page is

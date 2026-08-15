@@ -4,7 +4,6 @@ package dev.lyo.callrec.permissions
 import android.content.Context
 import android.provider.Settings
 import dev.lyo.callrec.di.AppContainer
-import dev.lyo.callrec.recorder.DaemonHealth
 
 /**
  * Single source of truth for "is the app set up well enough to record?".
@@ -38,7 +37,10 @@ data class SetupStatus(
         fun probe(ctx: Context, container: AppContainer): SetupStatus {
             container.shizuku.refresh()
             return SetupStatus(
-                shizukuReady = container.shizuku.health.value is DaemonHealth.Bound,
+                // Not `is Bound`: refresh() binds asynchronously, so probing
+                // right after a call reads the Idle that unbind() left behind
+                // and would report a broken setup while nothing is wrong.
+                shizukuReady = !container.shizuku.health.value.isFault,
                 runtimePermsGranted = AppPermissions.allGranted(ctx),
                 overlayGranted = Settings.canDrawOverlays(ctx),
                 batteryExempt = BatteryOptimizations.isIgnoring(ctx),

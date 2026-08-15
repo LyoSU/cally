@@ -17,7 +17,10 @@ object DaemonHealthNotification {
 
     fun update(ctx: Context, health: DaemonHealth) {
         val nm = ctx.getSystemService<NotificationManager>() ?: return
-        if (health is DaemonHealth.Bound) {
+        // Anything non-faulty clears the notification instead of rewording
+        // it. Gating on `is Bound` here meant the healthy Idle pause between
+        // two calls raised an alarm every time a call ended.
+        if (!health.isFault) {
             runCatching { nm.cancel(NOTIF_ID) }
             return
         }
@@ -27,7 +30,7 @@ object DaemonHealthNotification {
             DaemonHealth.NoPermission -> R.string.daemon_nopermission_title to R.string.daemon_nopermission_body
             DaemonHealth.Stale -> R.string.daemon_stale_title to R.string.daemon_stale_body
             is DaemonHealth.Unhealthy -> R.string.daemon_unhealthy_title to R.string.daemon_unhealthy_body
-            is DaemonHealth.Bound -> return
+            DaemonHealth.Idle, is DaemonHealth.Bound -> return
         }
         val tap = PendingIntent.getActivity(
             ctx, 0,

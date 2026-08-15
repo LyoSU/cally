@@ -22,6 +22,12 @@
 ### Застаріле (Deprecated)
 -
 
+## [0.5.1] — 2026-08-15
+
+### Виправлено
+- **Нотифікація «cally: permission needed» більше не з'являється після кожного дзвінка** ([#13](https://github.com/LyoSU/cally/issues/13), фікс — [@elphamale](https://github.com/elphamale) у [#26](https://github.com/LyoSU/cally/pull/26)). `CallMonitorService.onDestroy` відв'язує наш `ServiceConnection` наприкінці кожного дзвінка, а `ShizukuClient.unbind()` виводив із цього `DaemonHealth.NoPermission` — просто тому, що бінлер самого Shizuku ще живий. Дозвіл при цьому ніколи не відкликався. Тепер `unbind()` перечитує `checkSelfPermission()` і зупиняється на новому стані `DaemonHealth.Idle`, який означає «Shizuku здоровий, ми просто не прив'язані».
+- **Головний екран, онбординг і `SetupChecks` більше не показують «Shizuku недоступний» у паузі між дзвінками.** Усі три місця питали `!is DaemonHealth.Bound`, вважаючи будь-який інший стан несправністю. Перевірки переїхали на `DaemonHealth.isFault` — один центр істини для питання «чи є що показувати юзеру». Окремо це помітно в `SetupStatus.probe()`: `refresh()` прив'язується асинхронно, тож читання одразу після нього бачило `Idle` і рапортувало зламане налаштування.
+
 ## [0.5.0] — 2026-05-01
 
 ### Змінено

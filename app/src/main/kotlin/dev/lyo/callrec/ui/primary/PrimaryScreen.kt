@@ -260,7 +260,7 @@ fun PrimaryScreen(
                 }
 
                 val bannerVisible = recState !is RecorderController.RecordingState.Idle ||
-                    daemonHealth !is DaemonHealth.Bound
+                    daemonHealth.isFault
                 AnimatedVisibility(
                     visible = bannerVisible && !selectionUiActive,
                     enter = fadeIn(tween(220)),
@@ -479,7 +479,7 @@ private fun StatusBanner(
             MaterialTheme.colorScheme.onErrorContainer,
             stringResource(R.string.rec_status_failed_silence),
         )
-        daemonHealth !is DaemonHealth.Bound -> Triple(
+        daemonHealth.isFault -> Triple(
             MaterialTheme.colorScheme.surfaceContainerHigh,
             MaterialTheme.colorScheme.onSurfaceVariant,
             stringResource(R.string.home_status_no_shizuku),

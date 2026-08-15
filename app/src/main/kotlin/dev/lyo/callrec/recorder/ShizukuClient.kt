@@ -140,16 +140,24 @@ class ShizukuClient(private val ctx: Context) {
 
     fun bind() = recompute()
 
+    /**
+     * Drop our own [conn] binding. Called at the end of every call from
+     * `CallMonitorService.onDestroy`, so the state left behind here is what
+     * the user stares at between calls — it must not describe a fault that
+     * isn't there.
+     *
+     * Voluntarily unbinding says nothing about Shizuku: `daemon(true)` keeps
+     * the privileged process running and our permission grant is untouched.
+     * So re-derive the real state the same way [recompute] does, and land on
+     * [DaemonHealth.Idle] when the answer is "nothing is wrong".
+     */
     fun unbind(remove: Boolean = false) {
         runCatching { Shizuku.unbindUserService(args, conn, remove) }
-        // Voluntarily dropping our own binding doesn't mean permission was
-        // revoked — re-check checkSelfPermission() instead of assuming
-        // NoPermission, or every call-end falsely re-triggers the
-        // "permission needed" notification/onboarding prompt.
         _health.value = when {
-            !Shizuku.pingBinder() -> DaemonHealth.NotRunning
+            !Shizuku.pingBinder() ->
+                if (isShizukuInstalled()) DaemonHealth.NotRunning else DaemonHealth.NotInstalled
             Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED -> DaemonHealth.NoPermission
-            else -> DaemonHealth.NotRunning
+            else -> DaemonHealth.Idle
         }
     }
 
