@@ -24,6 +24,9 @@ import kotlinx.coroutines.launch
  * against the initial-IDLE callback the platform fires synchronously on
  * register), it just trusts whatever this receiver dispatched.
  *
+ * Not every PHONE_STATE broadcast is a SIM call — Telecom sends them for
+ * self-managed VoIP calls too — so the start path is gated on [CellularCall].
+ *
  * Before each `startForegroundService(type=microphone)` we briefly add an
  * invisible overlay window so the OS promotes the process to a foreground
  * state — that's how we bypass the Android 14+ FGS-from-background
@@ -58,6 +61,15 @@ class CallStateReceiver : BroadcastReceiver() {
                     try {
                         if (!auto) {
                             L.d("Receiver", "auto-record OFF — skip FGS for $state")
+                            return@launch
+                        }
+                        // Telecom broadcasts PHONE_STATE for self-managed
+                        // VoIP calls as well, so Discord/WhatsApp/Telegram
+                        // land here. See [CellularCall] for why recording
+                        // them poisons the capability cache rather than just
+                        // producing a junk file.
+                        if (!CellularCall.isActive(ctx)) {
+                            L.i("Receiver", "$state with no SIM call — VoIP/self-managed, skipping")
                             return@launch
                         }
                         // Pre-promote the process to a foreground UI state
@@ -112,6 +124,14 @@ class CallStateReceiver : BroadcastReceiver() {
                 // IDLE → tell the service to wind down. Idempotent: if the
                 // service was never started (auto-record OFF), this is a
                 // cheap no-op intent dispatch.
+                //
+                // Deliberately NOT gated on CellularCall like the start path.
+                // The two directions fail in opposite ways: a missed start
+                // costs one recording, a missed stop leaves the recorder
+                // running forever. So if telephony state ever lagged behind
+                // the IDLE broadcast, gating here would be the far more
+                // expensive mistake — we always wind down and accept that a
+                // VoIP call ending mid-SIM-call can cut a recording short.
                 val svc = Intent(ctx, CallMonitorService::class.java).apply {
                     action = CallMonitorService.ACTION_CALL_END
                 }

@@ -24,6 +24,9 @@
 
 ## [0.5.1] — 2026-08-15
 
+### Змінено
+- **Авто-запис реагує лише на справжні дзвінки з SIM.** `ACTION_PHONE_STATE_CHANGED` розсилає не тільки телефонія — Telecom робить те саме для дзвінків через self-managed `ConnectionService`, тобто Discord, WhatsApp, Telegram і Signal підіймали `CallStateReceiver` нарівні зі звичайним дзвінком. Це не просто зайвий файл: ladder перебирає `VOICE_CALL`/`VOICE_UPLINK`/`VOICE_DOWNLINK` — джерела модемного тракту, які під час VoIP-дзвінка мовчать за побудовою, — і записував ці стратегії у capability-кеш пристрою як `knownSilent`, псуючи наступний реальний дзвінок. Тепер старт додатково звіряється з per-SIM станом телефонії (`CellularCall`), який про self-managed дзвінки не знає нічого. VoIP і будь-що інше пишеться вручну через режим голосової замітки.
+
 ### Виправлено
 - **Нотифікація «cally: permission needed» більше не з'являється після кожного дзвінка** ([#13](https://github.com/LyoSU/cally/issues/13), фікс — [@elphamale](https://github.com/elphamale) у [#26](https://github.com/LyoSU/cally/pull/26)). `CallMonitorService.onDestroy` відв'язує наш `ServiceConnection` наприкінці кожного дзвінка, а `ShizukuClient.unbind()` виводив із цього `DaemonHealth.NoPermission` — просто тому, що бінлер самого Shizuku ще живий. Дозвіл при цьому ніколи не відкликався. Тепер `unbind()` перечитує `checkSelfPermission()` і зупиняється на новому стані `DaemonHealth.Idle`, який означає «Shizuku здоровий, ми просто не прив'язані».
 - **Головний екран, онбординг і `SetupChecks` більше не показують «Shizuku недоступний» у паузі між дзвінками.** Усі три місця питали `!is DaemonHealth.Bound`, вважаючи будь-який інший стан несправністю. Перевірки переїхали на `DaemonHealth.isFault` — один центр істини для питання «чи є що показувати юзеру». Окремо це помітно в `SetupStatus.probe()`: `refresh()` прив'язується асинхронно, тож читання одразу після нього бачило `Idle` і рапортувало зламане налаштування.
