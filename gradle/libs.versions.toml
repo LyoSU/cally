@@ -18,8 +18,9 @@ splashscreen = "1.2.0"
 # Expressive surface (MaterialExpressiveTheme, MotionScheme.expressive(),
 # wavy LoadingIndicator, FloatingToolbar, ButtonGroup, SplitButton,
 # MaterialShapes shape morphing) is *public*. The 1.4.0 stable line still
-# ships these as `internal`. Pinned outside the BOM because BOM 2025.04.00
-# still references material3 1.3.x.
+# ships these as `internal`. Pinned outside the BOM, which even at 2026.06.01
+# still constrains material3 to 1.4.0 — re-check that constraint before
+# assuming a BOM bump can carry the pin away with it.
 compose-bom = "2026.06.01"
 material3 = "1.5.0-alpha14"
 material-icons = "1.7.8"

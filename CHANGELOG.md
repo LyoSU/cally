@@ -25,6 +25,7 @@
 ## [0.5.1] — 2026-08-15
 
 ### Змінено
+- **Compose BOM 2025.04.00 → 2026.06.01** ([#21](https://github.com/LyoSU/cally/pull/21)). `material3` лишається пришпиленим на `1.5.0-alpha14` окремо від BOM — навіть 2026.06.01 обмежує його до 1.4.0, де Expressive-поверхня ще `internal`. Решта androidx-бампів ([#17](https://github.com/LyoSU/cally/pull/17)) не пройшла: `core-ktx` 1.19.0 і `lifecycle` 2.11.0 вимагають `compileSdk 37` та AGP 9.1+, тобто прив'язані до апгрейду тулчейну.
 - **Авто-запис реагує лише на справжні дзвінки з SIM.** `ACTION_PHONE_STATE_CHANGED` розсилає не тільки телефонія — Telecom робить те саме для дзвінків через self-managed `ConnectionService`, тобто Discord, WhatsApp, Telegram і Signal підіймали `CallStateReceiver` нарівні зі звичайним дзвінком. Це не просто зайвий файл: ladder перебирає `VOICE_CALL`/`VOICE_UPLINK`/`VOICE_DOWNLINK` — джерела модемного тракту, які під час VoIP-дзвінка мовчать за побудовою, — і записував ці стратегії у capability-кеш пристрою як `knownSilent`, псуючи наступний реальний дзвінок. Тепер старт додатково звіряється з per-SIM станом телефонії (`CellularCall`), який про self-managed дзвінки не знає нічого. VoIP і будь-що інше пишеться вручну через режим голосової замітки.
 
 ### Виправлено
