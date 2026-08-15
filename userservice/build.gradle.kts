@@ -4,7 +4,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
 }
 
 // Pinned constants the UserService bakes into BuildConfig. Kept here (not in
@@ -57,7 +56,7 @@ val signingSha256: String = run {
 
 android {
     namespace = "dev.lyo.callrec.userservice"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 31

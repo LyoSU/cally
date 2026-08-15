@@ -8,7 +8,7 @@
 -
 
 ### Змінено
--
+- **Апгрейд тулчейну: Gradle 8.11.1 → 9.6.1, AGP 8.9.1 → 9.3.1, Kotlin 2.1.20 → 2.3.21, KSP → 2.3.10, compileSdk 36 → 37** ([#25](https://github.com/LyoSU/cally/pull/25), [#22](https://github.com/LyoSU/cally/pull/22), [#20](https://github.com/LyoSU/cally/pull/20), [#17](https://github.com/LyoSU/cally/pull/17), [#6](https://github.com/LyoSU/cally/pull/6) — одним пакетом, бо поодинці не збираються). Разом із ним `core-ktx` 1.19.0, `lifecycle` 2.11.0, `media` 1.8.0, coroutines 1.11.0, serialization 1.11.0. Знадобилось: прибрати плагін `org.jetbrains.kotlin.android` з усіх модулів (AGP 9 має вбудовану Kotlin-підтримку і падає на apply), прибрати видалену проперті `android.defaults.buildfeatures.buildconfig`, прибрати компіляторні прапорці `-Xjvm-default=all` і `-Xcontext-receivers` (обидва застаріли в Kotlin 2.2+, жоден не був потрібен — у проєкті немає жодного `context(...)`). `targetSdk` свідомо лишається 36: підняття цільового API міняє рантайм-поведінку і має їхати окремо, з перевіркою на пристроях.
 
 ### Виправлено
 -

@@ -2,7 +2,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -18,7 +17,7 @@ val keystoreProps = Properties().apply {
 
 android {
     namespace = "dev.lyo.callrec"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "dev.lyo.callrec"
@@ -71,9 +70,12 @@ android {
     kotlin {
         jvmToolchain(21)
         compilerOptions {
+            // -Xjvm-default=all and -Xcontext-receivers both dropped on the
+            // Kotlin 2.3 upgrade. Neither was load-bearing: no file in the
+            // project declares a `context(...)` receiver, and JVM default
+            // methods are the compiler default since 2.2, so the flag only
+            // bought a deprecation warning.
             freeCompilerArgs.addAll(
-                "-Xjvm-default=all",
-                "-Xcontext-receivers",
                 "-opt-in=kotlin.RequiresOptIn",
                 "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
                 "-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi",

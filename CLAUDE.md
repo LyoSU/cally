@@ -69,7 +69,9 @@ User-configurable cloud STT — окей (вони самі вирішили, в
 adb logcat -s RecorderController RecorderService AudioRecorderJob  # bypass debugging
 ```
 
-JDK 21 toolchain (auto-provisioned через foojay resolver). Gradle 8.11.1 + AGP 8.9.1 + Kotlin 2.1.20 (K2). KSP не kapt.
+JDK 21 toolchain (auto-provisioned через foojay resolver). Gradle 9.6.1 + AGP 9.3.1 + Kotlin 2.3.21 (K2), compileSdk 37 / targetSdk 36. KSP не kapt.
+
+**AGP 9 gotcha:** плагін `org.jetbrains.kotlin.android` більше не застосовується — Kotlin-підтримка вбудована в AGP. Не додавайте його назад у жоден модуль, збірка впаде на apply. `kotlin { }` блок живе всередині `android { }`. Так само прибрано `android.defaults.buildfeatures.buildconfig` з `gradle.properties` (видалено в AGP 9) — модулі вмикають `buildFeatures { buildConfig = true }` явно.
 
 ## Code style
 
@@ -97,7 +99,7 @@ JDK 21 toolchain (auto-provisioned через foojay resolver). Gradle 8.11.1 + 
 
 **Повні правила — у [`RELEASING.md`](RELEASING.md). Не імпровізуйте.**
 
-Поточна версія: `versionCode = 1`, `versionName = "0.1.0"`, `userServiceVersion = 11`.
+Поточна версія: `versionCode = 7`, `versionName = "0.5.1"`, `userServiceVersion = 12`.
 
 Стислі обов'язкові правила:
 
