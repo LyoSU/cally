@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 package dev.lyo.callrec.cleanup
 
+import android.content.Context
 import dev.lyo.callrec.core.L
 import dev.lyo.callrec.settings.AppSettings
 import dev.lyo.callrec.storage.BulkOps
 import dev.lyo.callrec.storage.CallRecord
+import dev.lyo.callrec.storage.RecordingPaths
 import dev.lyo.callrec.storage.RecordingsDb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.io.File
 
 /**
  * Auto-cleanup orchestrator. Runs at app start (fire-and-forget on the
@@ -42,6 +43,7 @@ object CleanupJob {
      * @param now current time in epoch millis; injected for testability.
      */
     suspend fun runOnce(
+        ctx: Context,
         settings: AppSettings,
         db: RecordingsDb,
         now: Long = System.currentTimeMillis(),
@@ -61,7 +63,7 @@ object CleanupJob {
             val victims = dao.selectOlderThan(cutoffMs)
             if (victims.isNotEmpty()) {
                 L.i(TAG, "max-age=${maxAgeDays}d → pruning ${victims.size} record(s) older than $cutoffMs")
-                BulkOps.deleteFiles(victims)
+                BulkOps.deleteFiles(ctx, victims)
                 prunedAge = dao.deleteOlderThan(cutoffMs)
             } else {
                 L.d(TAG, "max-age=${maxAgeDays}d → nothing to prune")
@@ -70,7 +72,7 @@ object CleanupJob {
 
         var prunedSize = 0
         if (maxSizeGb != null) {
-            prunedSize = enforceSizeCap(db, maxSizeGb)
+            prunedSize = enforceSizeCap(ctx, db, maxSizeGb)
         }
 
         L.i(TAG, "done — age-pruned=$prunedAge size-pruned=$prunedSize")
@@ -88,7 +90,7 @@ object CleanupJob {
      * non-favourite set down to zero. That matches the spec: "still keep
      * the most recent record. Never wipe to zero."
      */
-    private suspend fun enforceSizeCap(db: RecordingsDb, capGb: Int): Int {
+    private suspend fun enforceSizeCap(ctx: Context, db: RecordingsDb, capGb: Int): Int {
         val capBytes = capGb.toLong() * BYTES_PER_GB
         val dao = db.calls()
         // Snapshot of non-favourites, oldest first. Favourites are excluded
@@ -97,7 +99,7 @@ object CleanupJob {
         val candidates = dao.selectOldestNotFavorite()
         val all = dao.observeAll().first()
 
-        var totalBytes = all.sumOf { recordBytes(it) }
+        var totalBytes = all.sumOf { recordBytes(ctx, it) }
         if (totalBytes <= capBytes) {
             L.d(TAG, "max-size=${capGb}GB → already under cap (totalBytes=$totalBytes)")
             return 0
@@ -114,7 +116,7 @@ object CleanupJob {
         for (c in deletable) {
             if (totalBytes <= capBytes) break
             toDelete += c
-            totalBytes -= recordBytes(c)
+            totalBytes -= recordBytes(ctx, c)
         }
 
         if (toDelete.isEmpty()) {
@@ -122,7 +124,7 @@ object CleanupJob {
             return 0
         }
 
-        BulkOps.deleteFiles(toDelete)
+        BulkOps.deleteFiles(ctx, toDelete)
         dao.deleteAll(toDelete.map { it.callId })
         return toDelete.size
     }
@@ -130,11 +132,9 @@ object CleanupJob {
     /** Sum of uplink and (optional) downlink file sizes on disk. Missing
      *  files contribute 0 bytes — matches what `BulkOps.deleteFiles` would
      *  free up if asked. */
-    private fun recordBytes(r: CallRecord): Long {
-        val up = runCatching { File(r.uplinkPath).length() }.getOrDefault(0L)
-        val dn = r.downlinkPath?.let { p ->
-            runCatching { File(p).length() }.getOrDefault(0L)
-        } ?: 0L
+    private fun recordBytes(ctx: Context, r: CallRecord): Long {
+        val up = RecordingPaths.length(ctx, r.uplinkPath)
+        val dn = r.downlinkPath?.let { RecordingPaths.length(ctx, it) } ?: 0L
         return up + dn
     }
 }

@@ -505,12 +505,12 @@ class RecorderController(
         return when {
             upSilent && !dnSilent -> {
                 L.i("Recorder", "downgrade: uplink silent (max=$upMax) — keeping downlink only")
-                runCatching { java.io.File(out.uplink.path).delete() }
+                runCatching { storage.delete(out.uplink.path) }
                 Outcome.Single(out.downlink, out.strategy)
             }
             dnSilent && !upSilent -> {
                 L.i("Recorder", "downgrade: downlink silent (max=$dnMax) — keeping uplink only")
-                runCatching { java.io.File(out.downlink.path).delete() }
+                runCatching { storage.delete(out.downlink.path) }
                 Outcome.Single(out.uplink, out.strategy)
             }
             else -> out

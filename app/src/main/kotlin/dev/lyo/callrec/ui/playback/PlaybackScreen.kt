@@ -91,6 +91,7 @@ import dev.lyo.callrec.codec.Waveform
 import dev.lyo.callrec.core.L
 import dev.lyo.callrec.di.AppContainer
 import dev.lyo.callrec.storage.CallRecord
+import dev.lyo.callrec.storage.RecordingPaths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -99,7 +100,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.util.Locale
 import kotlin.math.max
 import kotlin.math.roundToLong
@@ -158,8 +158,8 @@ fun PlaybackScreen(
     // to whichever file actually exists so the user can still play the
     // surviving side instead of seeing ENOENT in the player.
     val (primaryPath, secondaryPath) = remember(rec?.uplinkPath, rec?.downlinkPath) {
-        val up = rec?.uplinkPath?.takeIf { File(it).exists() }
-        val dn = rec?.downlinkPath?.takeIf { File(it).exists() }
+        val up = rec?.uplinkPath?.takeIf { RecordingPaths.exists(ctx, it) }
+        val dn = rec?.downlinkPath?.takeIf { RecordingPaths.exists(ctx, it) }
         when {
             up != null && dn != null -> up to dn
             up != null -> up to null
@@ -175,13 +175,17 @@ fun PlaybackScreen(
     val primaryBins by produceState<FloatArray?>(initialValue = null, key1 = primaryPath) {
         val path = primaryPath ?: return@produceState
         value = withContext(Dispatchers.Default) {
-            Waveform.buildBins(File(path))?.let { Waveform.normalize(it) }
+            RecordingPaths.materializeToCache(ctx, path)
+                ?.let { Waveform.buildBins(it) }
+                ?.let { Waveform.normalize(it) }
         }
     }
     val secondaryBins by produceState<FloatArray?>(initialValue = null, key1 = secondaryPath) {
         val path = secondaryPath ?: return@produceState
         value = withContext(Dispatchers.Default) {
-            Waveform.buildBins(File(path))?.let { Waveform.normalize(it) }
+            RecordingPaths.materializeToCache(ctx, path)
+                ?.let { Waveform.buildBins(it) }
+                ?.let { Waveform.normalize(it) }
         }
     }
 
@@ -206,7 +210,7 @@ fun PlaybackScreen(
         val pri = primaryPath ?: return@LaunchedEffect
         runCatching {
             playerA.reset()
-            playerA.setDataSource(pri)
+            playerA.setDataSource(ctx, RecordingPaths.playableUri(pri))
             playerA.prepare()
             durationA = playerA.duration.coerceAtLeast(0)
             preparedA = true
@@ -215,7 +219,7 @@ fun PlaybackScreen(
         if (sec != null) {
             runCatching {
                 playerB.reset()
-                playerB.setDataSource(sec)
+                playerB.setDataSource(ctx, RecordingPaths.playableUri(sec))
                 playerB.prepare()
                 durationB = playerB.duration.coerceAtLeast(0)
                 preparedB = true
@@ -365,8 +369,8 @@ fun PlaybackScreen(
                     runCatching { playerA.stop() }
                     runCatching { playerB.stop() }
                     scope.launch {
-                        runCatching { File(r.uplinkPath).delete() }
-                        r.downlinkPath?.let { runCatching { File(it).delete() } }
+                        runCatching { RecordingPaths.delete(ctx, r.uplinkPath) }
+                        r.downlinkPath?.let { runCatching { RecordingPaths.delete(ctx, it) } }
                         container.db.calls().delete(r.callId)
                         onBack()
                     }
@@ -516,14 +520,14 @@ fun PlaybackScreen(
                 // dropped by the silence-downgrade.
                 val pri = primaryPath
                 val sttFile by produceState<java.io.File?>(
-                    initialValue = pri?.let { java.io.File(it) },
+                    initialValue = pri?.takeUnless { RecordingPaths.isSaf(it) }?.let { java.io.File(it) },
                     key1 = r.callId,
                     key2 = primaryPath,
                     key3 = secondaryPath,
                 ) {
-                    val priFile = pri?.let { java.io.File(it) } ?: return@produceState
+                    val priFile = pri?.let { RecordingPaths.materializeToCache(ctx, it) } ?: return@produceState
                     val sec = secondaryPath ?: return@produceState
-                    val secFile = java.io.File(sec)
+                    val secFile = RecordingPaths.materializeToCache(ctx, sec) ?: return@produceState
                     value = withContext(Dispatchers.Default) {
                         val mixed = java.io.File(ctx.cacheDir, "stt/${r.callId}-stt.wav")
                         if (mixed.exists() &&
@@ -905,18 +909,19 @@ private fun MetaCard(rec: CallRecord, isDual: Boolean) {
 
 @Composable
 private fun MetaRow(path: String) {
-    val f = remember(path) { File(path) }
-    val ext = remember(path) { path.substringAfterLast('.', "").lowercase(Locale.US) }
+    val ctx = LocalContext.current
+    val name = remember(path) { RecordingPaths.displayName(ctx, path) ?: path.substringAfterLast('/') }
+    val ext = remember(name) { name.substringAfterLast('.', "").lowercase(Locale.US) }
     val codec = when (ext) {
         "wav" -> "WAV PCM"
         "m4a", "mp4", "aac" -> "AAC"
         "ogg", "opus" -> "OPUS"
         else -> ext.uppercase(Locale.US).ifEmpty { "?" }
     }
-    val bytes = remember(path) { runCatching { f.length() }.getOrDefault(0L) }
+    val bytes = remember(path) { RecordingPaths.length(ctx, path) }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
-            f.nameWithoutExtension,
+            name.substringBeforeLast('.', name),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f),

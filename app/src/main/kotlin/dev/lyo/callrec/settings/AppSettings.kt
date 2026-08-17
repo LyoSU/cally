@@ -96,6 +96,17 @@ class AppSettings(private val store: DataStore<Preferences>) {
         else it[KEY_CLEANUP_MAX_SIZE_GB] = v
     }
 
+    /**
+     * SAF tree URI (as a `content://` string) the user picked as the
+     * recording destination. `null` means the legacy app-private
+     * `getExternalFilesDir(null)/recordings` directory — see
+     * [dev.lyo.callrec.storage.RecordingStorage].
+     */
+    val recordingFolderUri: Flow<String?> = store.data.map { it[KEY_RECORDING_FOLDER_URI] }
+    suspend fun setRecordingFolderUri(v: String?) = store.edit {
+        if (v == null) it.remove(KEY_RECORDING_FOLDER_URI) else it[KEY_RECORDING_FOLDER_URI] = v
+    }
+
     companion object {
         // OpenRouter — proxies the same OpenAI chat-completions schema across
         // hundreds of providers, accepts audio attachments natively for
@@ -116,6 +127,7 @@ class AppSettings(private val store: DataStore<Preferences>) {
         val STT_MODEL = stringPreferencesKey("stt_model")
         val CLEANUP_MAX_AGE_DAYS = intPreferencesKey("auto_cleanup_max_age_days")
         val CLEANUP_MAX_SIZE_GB = intPreferencesKey("auto_cleanup_max_size_gb")
+        val RECORDING_FOLDER_URI = stringPreferencesKey("recording_folder_uri")
     }
 
     private val KEY_SAMPLE_RATE get() = Keys.SAMPLE_RATE
@@ -129,4 +141,5 @@ class AppSettings(private val store: DataStore<Preferences>) {
     private val KEY_STT_MODEL get() = Keys.STT_MODEL
     private val KEY_CLEANUP_MAX_AGE_DAYS get() = Keys.CLEANUP_MAX_AGE_DAYS
     private val KEY_CLEANUP_MAX_SIZE_GB get() = Keys.CLEANUP_MAX_SIZE_GB
+    private val KEY_RECORDING_FOLDER_URI get() = Keys.RECORDING_FOLDER_URI
 }

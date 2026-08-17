@@ -3,6 +3,7 @@ package dev.lyo.callrec.transcription
 
 import dev.lyo.callrec.core.L
 import dev.lyo.callrec.di.AppContainer
+import dev.lyo.callrec.storage.RecordingPaths
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -12,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.io.File
 
 /** UI-observable state of a single transcription run. */
 sealed interface TranscribeState {
@@ -46,7 +46,10 @@ class TranscribeJob(
                 runCatching {
                     val transcriber = TranscriberFactory.create(container)
                     L.i("TranscribeJob", "starting transcribe callId=$callId")
-                    val text = transcriber.transcribe(File(audioPath))
+                    val audioFile = requireNotNull(RecordingPaths.materializeToCache(container.appContext, audioPath)) {
+                        "could not open $audioPath for transcription"
+                    }
+                    val text = transcriber.transcribe(audioFile)
                     L.d("TranscribeJob", "got ${text.length} chars")
                     db.calls().setTranscript(callId, text)
                     _state.value = TranscribeState.Done(text)

@@ -5,6 +5,7 @@ import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.media.MediaMuxer
+import android.os.ParcelFileDescriptor
 import dev.lyo.callrec.core.L
 import dev.lyo.callrec.storage.RecordingFile
 import java.nio.ByteBuffer
@@ -21,6 +22,7 @@ class AacEncoder(private val file: RecordingFile) : PcmEncoder {
 
     private lateinit var codec: MediaCodec
     private lateinit var muxer: MediaMuxer
+    private lateinit var pfd: ParcelFileDescriptor
     private val bufferInfo = MediaCodec.BufferInfo()
     @Volatile private var failed = false
 
@@ -36,9 +38,6 @@ class AacEncoder(private val file: RecordingFile) : PcmEncoder {
         sampleRate = sampleRateHz
         channels = channelCount
 
-        // Force the file to exist; MediaMuxer needs the path to be writable.
-        file.openOrCreate()
-
         val bitrate = if (channelCount == 2) 64_000 else 32_000
         val format = MediaFormat.createAudioFormat(MIME_AAC, sampleRateHz, channelCount).apply {
             setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
@@ -50,7 +49,8 @@ class AacEncoder(private val file: RecordingFile) : PcmEncoder {
                 configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
                 start()
             }
-            muxer = MediaMuxer(file.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+            pfd = file.openWriteFd()
+            muxer = MediaMuxer(pfd.fileDescriptor, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
             L.d("AacEncoder", "open ${file.path} ${sampleRateHz}Hz ch=$channelCount @${bitrate}bps")
         } catch (t: Throwable) {
             failed = true
@@ -108,6 +108,7 @@ class AacEncoder(private val file: RecordingFile) : PcmEncoder {
                 runCatching { muxer.stop() }
             }
             runCatching { muxer.release() }
+            runCatching { pfd.close() }
         }
     }
 
