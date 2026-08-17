@@ -21,7 +21,7 @@ splashscreen = "1.2.0"
 # ships these as `internal`. Pinned outside the BOM, which even at 2026.06.01
 # still constrains material3 to 1.4.0 — re-check that constraint before
 # assuming a BOM bump can carry the pin away with it.
-compose-bom = "2026.06.01"
+compose-bom = "2026.08.00"
 material3 = "1.5.0-alpha14"
 material-icons = "1.7.8"
 
