@@ -75,7 +75,7 @@ compose-animation = { module = "androidx.compose.animation:animation" }
 compose-runtime = { module = "androidx.compose.runtime:runtime" }
 
 # Navigation (predictive back)
-androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version = "2.9.8" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version = "2.10.0" }
 
 # Persistence
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
