@@ -31,7 +31,7 @@ material-icons = "1.7.8"
 graphics-shapes = "1.0.1"
 
 # Persistence
-room = "2.7.0"
+room = "2.8.5"
 datastore = "1.2.1"
 
 # Coroutines / serialization
