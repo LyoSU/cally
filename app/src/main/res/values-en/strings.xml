@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">cally</string>
+    <string name="app_tagline">Call recording without compromises</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Call recording via Shizuku</string>
+    <string name="onboarding_step_install">Install Shizuku</string>
+    <string name="onboarding_step_install_desc">A free tool that provides privileged access without root.</string>
+    <string name="onboarding_step_activate">Activate Shizuku</string>
+    <string name="onboarding_step_activate_desc">Via Wireless Debugging — no USB cable needed.</string>
+    <string name="onboarding_step_grant">Grant the app permission</string>
+    <string name="onboarding_step_grant_desc">Once only — we won\'t ask again.</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_open_shizuku">Open Shizuku</string>
+
+    <!-- Primary screen -->
+    <string name="home_status_no_shizuku">Shizuku is not active</string>
+    <string name="home_recordings_empty">No recordings yet</string>
+    <string name="home_action_settings">Settings</string>
+    <string name="primary_search_placeholder">Search by name or number</string>
+    <string name="primary_select">Select</string>
+    <string name="primary_selection_count">%1$d selected</string>
+    <string name="primary_filter_all">All</string>
+    <string name="primary_filter_today">Today</string>
+    <string name="primary_filter_week">This week</string>
+    <string name="primary_filter_favorites">Favorites</string>
+    <string name="primary_fab_record">Record</string>
+    <string name="primary_empty_hint">Calls are recorded automatically. Or tap the mic at the top to start manually.</string>
+    <string name="primary_empty_search">Nothing found for “%1$s”</string>
+    <string name="primary_empty_filter_title">Nothing in this selection</string>
+    <string name="primary_empty_filter_hint">Try a different filter or clear the search.</string>
+    <string name="primary_bucket_today">Today</string>
+    <string name="primary_bucket_yesterday">Yesterday</string>
+    <string name="primary_bucket_week">This week</string>
+    <string name="primary_bucket_month">This month</string>
+
+    <!-- Recording -->
+    <string name="recording_uplink">Your voice</string>
+    <string name="recording_downlink">Other party</string>
+    <string name="recording_stop">Stop</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_recording">Active recording</string>
+    <string name="notif_channel_recording_desc">Persistent notification while a call is being recorded.</string>
+    <string name="notif_channel_status">Shizuku status</string>
+    <string name="notif_channel_status_desc">Notifications about connection problems.</string>
+    <string name="notif_recording_title">Recording call</string>
+    <string name="notif_recording_text_dual">Two tracks: your voice + other party</string>
+    <string name="notif_recording_text_single">Single track</string>
+    <string name="notif_recording_action_stop">Stop</string>
+
+    <string name="notif_channel_completed">Completed recordings</string>
+    <string name="notif_channel_completed_desc">Notification linking to the call that was just recorded.</string>
+    <string name="notif_completed_title">Call recorded</string>
+    <string name="notif_completed_text_with_contact">%1$s · %2$s</string>
+    <string name="notif_completed_text_anonymous">Duration %1$s · tap to open</string>
+
+    <string name="notif_channel_playback">Player</string>
+    <string name="notif_channel_playback_desc">Playback controls for recordings from the shade and lock screen.</string>
+
+    <!-- Recording row actions (shared by primary screen) -->
+    <string name="library_share">Share</string>
+    <string name="library_delete">Delete</string>
+    <string name="library_deleted">Recording deleted</string>
+    <string name="library_delete_bulk_msg">Delete %1$d recording(s)? The files will be permanently deleted.</string>
+
+    <!-- Playback -->
+    <string name="playback_play">Play</string>
+    <string name="playback_pause">Pause</string>
+    <string name="playback_skip_back">Back 10 s</string>
+    <string name="playback_skip_forward">Forward 10 s</string>
+    <string name="playback_speed_label">Speed</string>
+    <string name="playback_share">Share</string>
+    <string name="playback_share_title">How to share?</string>
+    <string name="playback_share_subtitle">Stereo — a single file with your voice on the left and the other party on the right. Separate — two mono tracks.</string>
+    <string name="playback_share_stereo">Stereo (1 file)</string>
+    <string name="playback_share_separate">Separate (2 files)</string>
+    <string name="playback_share_preparing">Preparing stereo…</string>
+    <string name="playback_delete">Delete</string>
+    <string name="playback_delete_title">Delete recording?</string>
+    <string name="playback_delete_message">The file and its library entry will be permanently deleted.</string>
+    <string name="playback_delete_confirm">Delete</string>
+    <string name="playback_delete_cancel">Cancel</string>
+    <string name="playback_back">Back</string>
+    <string name="playback_meta_dual">Two tracks</string>
+    <string name="playback_meta_single">Single track</string>
+    <string name="playback_notes_placeholder">Notes…</string>
+    <string name="playback_favorite_on">Remove from favorites</string>
+    <string name="playback_favorite_off">Add to favorites</string>
+    <string name="playback_transcribe">Transcribe</string>
+    <string name="playback_transcribe_running">Sending audio to the cloud…</string>
+
+    <!-- Smart-status messages — human language, no jargon. -->
+    <string name="rec_status_idle">Ready to record</string>
+    <string name="rec_status_probing">Tuning recording for your device…</string>
+    <string name="rec_status_active_dual">Both sides clearly audible — you and the other party</string>
+    <string name="rec_status_active_single_full">Both sides audible on a single track</string>
+    <string name="rec_status_active_mic_only">Only you are audible — the device blocks the other side</string>
+    <string name="rec_status_active_voice_memo">Recording is on</string>
+    <string name="rec_status_failed_silence">No audio source produced sound on this device</string>
+
+    <!-- Voice-memo (manual recording, no call) -->
+    <string name="voice_memo_title">Voice memo</string>
+    <string name="voice_memo_subtitle_with_date">Voice memo · %1$s</string>
+    <string name="rec_quality_excellent">Best quality</string>
+    <string name="rec_quality_good">Good quality</string>
+    <string name="rec_quality_partial">Partial quality</string>
+
+    <!-- Accessibility — required for reliable background FG service start -->
+    <string name="accessibility_service_summary">Enables automatic call recording</string>
+    <string name="accessibility_service_description">cally uses an accessibility service to reliably start recording automatically when a call comes in. We don\'t read any events — the service is only needed for permission to start recording in the background.</string>
+
+    <!-- Onboarding step 5 (overlay permission for FGS-from-background) -->
+    <string name="onboarding_step_overlay">Display over other apps</string>
+    <string name="onboarding_step_overlay_desc">Permission to draw over other apps — required for background auto-recording. We add an invisible 1×1 px layer for ~3 seconds so Android allows recording to start during a call.</string>
+    <string name="onboarding_step_overlay_action">Allow</string>
+
+    <!-- Onboarding step 6 (battery exemption) -->
+    <string name="onboarding_step_battery">No sleeping</string>
+    <string name="onboarding_step_battery_desc">Samsung and Pixel freeze apps when they are off-screen. Without this permission, cally can\'t wake itself up to record a call.</string>
+    <string name="onboarding_step_battery_action">Allow</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_recording">Recording</string>
+    <string name="settings_auto_record">Auto-record calls</string>
+    <string name="settings_auto_record_desc">Start recording automatically when a call is in progress.</string>
+    <string name="settings_ringback">Record from dialing</string>
+    <string name="settings_ringback_desc">The recording includes the ringback tone. If off, recording starts only after the call is answered.</string>
+    <string name="settings_sample_rate">Recording quality</string>
+    <string name="settings_sample_rate_desc">16 kHz — optimal for voice. 48 kHz — maximum quality, file is 3× larger.</string>
+    <string name="settings_format">Recording format</string>
+    <string name="settings_format_desc">AAC — file is ~5× smaller. WAV — lossless.</string>
+    <string name="settings_format_wav">WAV (lossless)</string>
+    <string name="settings_format_aac">AAC (≈5× smaller)</string>
+    <string name="settings_section_calibration">Device calibration</string>
+    <string name="settings_calibration_status">Current working method</string>
+    <string name="settings_calibration_unknown">Not calibrated yet — will run on the first call</string>
+    <string name="settings_calibration_reset">Recalibrate</string>
+    <string name="settings_calibration_reset_desc">Clear the cache — the app will try all methods again on the next call.</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_storage_path">Recordings folder</string>
+    <string name="settings_legal_title">Legal notice</string>
+    <string name="settings_legal_subtitle">Overview of call recording rules</string>
+
+    <!-- Legal disclaimer (first-run sheet + Settings re-read) -->
+    <string name="legal_title">Before you record</string>
+    <string name="legal_intro">Jurisdictions fall into three tiers. Find yours and act accordingly. This is not legal advice.</string>
+
+    <string name="legal_tier1_title">1. No notice required (one-party consent)</string>
+    <string name="legal_tier1_summary">Ukraine, UK, US federal + ~38 states, Canada, Australia, Poland.</string>
+    <string name="legal_tier1_body">A party to the conversation may record without notifying the other party. Your own consent is sufficient consent. Legal bases: the federal Wiretap Act, 18 U.S.C. § 2511 (US); RIPA 2000 (UK); Criminal Code § 184(2)(a) (Canada).</string>
+
+    <string name="legal_tier2_title">2. Notice is enough (all-party + implied consent)</string>
+    <string name="legal_tier2_summary">~11 US states: California, Illinois, Florida, Maryland, and others.</string>
+    <string name="legal_tier2_body">Full list: CA (Penal Code § 632), FL, IL, MD, MA, MT, NV, NH, PA, WA, CT. Notify the other party at the start of the call — if they hear it and continue, that is implied consent and the recording is legal. The doctrine has been established by case law for decades. The same mechanism underlies commercial hotline disclaimers in the EU.</string>
+
+    <string name="legal_tier3_title">3. Prohibited even with notice (explicit consent)</string>
+    <string name="legal_tier3_summary">Germany, Austria, Belgium. Explicit consent is required — notice is legally insufficient.</string>
+    <string name="legal_tier3_body">Germany — § 201 StGB (Vertraulichkeit des Wortes): up to 3 years\' imprisonment for recording “non-publicly spoken words” without explicit permission. German courts do not recognize implied consent in private conversations. Austria — § 120 StGB. Belgium — criminal law plus electronic communications law; written consent is often required. Do not use cally in these jurisdictions without an explicit “yes, I agree” from the other party.</string>
+
+    <string name="legal_tech_title">cally and the beep for the other party</string>
+    <string name="legal_tech_body">We technically cannot play a beep or announcement into the other party\'s ear — that is a system privilege of the Pixel Phone app, unavailable to third-party apps. A verbal notice at the start of the call works in tier 2 (implied consent). In tier 3 it is not enough — explicit consent is required.</string>
+
+    <string name="legal_share">Recording ≠ distribution. The user is responsible for publishing a recording without the other party\'s consent — even in one-party jurisdictions.</string>
+    <string name="legal_footer">Details and sources are in the project README.</string>
+    <string name="legal_action_accept">Understood, continue</string>
+    <string name="legal_action_close">Close</string>
+    <string name="settings_calibration_done">Reset. The next call will run a fresh calibration.</string>
+
+    <!-- Settings: Cloud STT (transcription) -->
+    <string name="settings_section_transcribe">Transcription</string>
+    <string name="settings_transcribe_desc">Speech recognition via any OpenAI-compatible API. Audio is sent to the service you choose. OpenRouter, OpenAI, Groq, and local LM Studio all work.</string>
+    <string name="settings_transcribe_base_url">Base URL</string>
+    <string name="settings_transcribe_api_key">API key</string>
+    <string name="settings_transcribe_model">Model</string>
+
+    <!-- Settings: Auto-cleanup -->
+    <string name="settings_section_cleanup">Auto-cleanup</string>
+    <string name="settings_cleanup_age_title">Keep by age</string>
+    <string name="settings_cleanup_age_desc">Delete recordings older than the selected period. Cleanup runs when the app starts. Favorites are never deleted, even if they exceed the limit.</string>
+    <string name="settings_cleanup_size_title">Storage limit</string>
+    <string name="settings_cleanup_size_desc">When total recording size exceeds the limit, the oldest are deleted. Favorites are never deleted, even if they exceed the limit.</string>
+    <string name="settings_cleanup_off">Don\'t clean up</string>
+    <string name="settings_cleanup_label_keep">Keep:</string>
+    <string name="settings_cleanup_days_short">%1$d d</string>
+    <string name="settings_cleanup_year_short">1 yr</string>
+    <string name="settings_cleanup_gb_short">%1$d GB</string>
+    <string name="settings_cleanup_applied">Old recordings will be deleted automatically on launch</string>
+
+    <!-- Errors -->
+    <string name="err_shizuku_denied">Permission denied</string>
+
+    <!-- Daemon health notifications -->
+    <string name="daemon_notinstalled_title">cally: Shizuku not installed</string>
+    <string name="daemon_notinstalled_body">Tap to set up</string>
+    <string name="daemon_notrunning_title">cally: Shizuku stopped</string>
+    <string name="daemon_notrunning_body">Reopen Shizuku to record calls</string>
+    <string name="daemon_nopermission_title">cally: permission needed</string>
+    <string name="daemon_nopermission_body">Tap to grant Shizuku access</string>
+    <string name="daemon_stale_title">cally: restart needed</string>
+    <string name="daemon_stale_body">Tap to refresh recorder</string>
+    <string name="daemon_unhealthy_title">cally: recorder unresponsive</string>
+    <string name="daemon_unhealthy_body">Tap to restart</string>
+    <string name="overlay_perm_missing_title">cally: overlay permission needed</string>
+    <string name="overlay_perm_missing_body">Cannot record without it on Android 14+</string>
+
+    <!-- Onboarding tip (used by Task 18) -->
+    <string name="onboarding_shizuku_tip_title">For best reliability</string>
+    <string name="onboarding_shizuku_tip_body">Consider community Shizuku builds with auto-restart and persistent ADB pairing.</string>
+    <string name="onboarding_shizuku_tip_cta">Learn more</string>
+
+    <!-- POST_NOTIFICATIONS rationale (used by Task 18) -->
+    <string name="onboarding_notif_perm_title">Allow notifications</string>
+    <string name="onboarding_notif_perm_body">Needed to alert you if Shizuku stops working.</string>
+
+    <!-- i18n: strings previously hardcoded in Kotlin -->
+    <string name="onboarding_step_perms">System permissions</string>
+    <string name="onboarding_step_perms_desc">Microphone, notifications, phone state, call log, contacts — so recording can start and show who you spoke with next to each recording.</string>
+    <string name="onboarding_recheck">Check status</string>
+    <string name="err_shizuku_denied_manual"> — open Shizuku and grant permission manually.</string>
+    <string name="settings_sample_rate_khz">%1$d kHz</string>
+    <string name="waveform_progress">Playback progress</string>
+    <string name="duration_seconds_short">%1$d s</string>
+    <string name="speaker_me">Me</string>
+    <string name="speaker_other">Other party</string>
+    <string name="tone_friendly">warm</string>
+    <string name="tone_tense">tense</string>
+    <string name="tone_excited">excited</string>
+    <string name="tone_sad">sad</string>
+    <string name="tone_angry">angry</string>
+    <string name="tone_questioning">questioning</string>
+    <string name="tone_neutral">neutral</string>
+    <string name="nonspeech_laugh">laughter</string>
+    <string name="nonspeech_sigh">sigh</string>
+    <string name="nonspeech_pause">pause</string>
+    <string name="nonspeech_cough">cough</string>
+    <string name="nonspeech_music">music</string>
+    <string name="nonspeech_background_voice">background voice</string>
+</resources>

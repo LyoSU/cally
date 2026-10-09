@@ -1169,9 +1169,10 @@ private fun chatAccents(dark: Boolean): List<SpeakerAccent> = if (dark) {
     )
 }
 
+@Composable
 private fun legacyDisplayLabel(id: String): String = when (id) {
-    dev.lyo.callrec.transcription.Transcript.LEGACY_ME -> "Я"
-    dev.lyo.callrec.transcription.Transcript.LEGACY_THEM -> "Співрозмовник"
+    dev.lyo.callrec.transcription.Transcript.LEGACY_ME -> stringResource(R.string.speaker_me)
+    dev.lyo.callrec.transcription.Transcript.LEGACY_THEM -> stringResource(R.string.speaker_other)
     dev.lyo.callrec.transcription.Transcript.LEGACY_UNKNOWN -> "—"
     else -> id
 }
@@ -1254,7 +1255,7 @@ private fun ChatSegment(
                 Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                     if (seg.nonSpeech.isNotEmpty()) {
                         Text(
-                            seg.nonSpeech.joinToString(", ") { "[${nonSpeechLabel(it)}]" },
+                            seg.nonSpeech.map { "[${nonSpeechLabel(it)}]" }.joinToString(", "),
                             style = MaterialTheme.typography.labelSmall,
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                             color = bubbleFg.copy(alpha = 0.6f),
@@ -1315,23 +1316,25 @@ private fun SpeakerAvatar(label: String, accent: SpeakerAccent) {
     }
 }
 
+@Composable
 private fun toneLabel(t: String): String = when (t.lowercase()) {
-    "friendly" -> "тепло"
-    "tense" -> "напружено"
-    "excited" -> "захоплено"
-    "sad" -> "сумно"
-    "angry" -> "зло"
-    "questioning" -> "питально"
-    "neutral" -> "нейтрально"
+    "friendly" -> stringResource(R.string.tone_friendly)
+    "tense" -> stringResource(R.string.tone_tense)
+    "excited" -> stringResource(R.string.tone_excited)
+    "sad" -> stringResource(R.string.tone_sad)
+    "angry" -> stringResource(R.string.tone_angry)
+    "questioning" -> stringResource(R.string.tone_questioning)
+    "neutral" -> stringResource(R.string.tone_neutral)
     else -> t
 }
 
+@Composable
 private fun nonSpeechLabel(s: String): String = when (s.lowercase()) {
-    "laugh" -> "сміх"
-    "sigh" -> "зітхання"
-    "pause" -> "пауза"
-    "cough" -> "кашель"
-    "background_music" -> "музика"
-    "background_voice" -> "голос на фоні"
+    "laugh" -> stringResource(R.string.nonspeech_laugh)
+    "sigh" -> stringResource(R.string.nonspeech_sigh)
+    "pause" -> stringResource(R.string.nonspeech_pause)
+    "cough" -> stringResource(R.string.nonspeech_cough)
+    "background_music" -> stringResource(R.string.nonspeech_music)
+    "background_voice" -> stringResource(R.string.nonspeech_background_voice)
     else -> s
 }

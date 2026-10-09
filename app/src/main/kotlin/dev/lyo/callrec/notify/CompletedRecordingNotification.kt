@@ -83,7 +83,7 @@ object CompletedRecordingNotification {
     private fun buildSubtitle(ctx: Context, rec: CallRecord): String {
         val ended = rec.endedAt ?: System.currentTimeMillis()
         val durationSec = ((ended - rec.startedAt) / 1000L).coerceAtLeast(0L)
-        val durationStr = formatDuration(durationSec)
+        val durationStr = formatDuration(ctx, durationSec)
         val who = rec.contactName?.takeIf { it.isNotBlank() }
             ?: rec.contactNumber?.takeIf { it.isNotBlank() }
         return if (who != null) {
@@ -93,10 +93,10 @@ object CompletedRecordingNotification {
         }
     }
 
-    private fun formatDuration(totalSec: Long): String {
+    private fun formatDuration(ctx: Context, totalSec: Long): String {
         val m = totalSec / 60
         val s = totalSec % 60
-        return if (m == 0L) "${s} с" else "%d:%02d".format(m, s)
+        return if (m == 0L) ctx.getString(R.string.duration_seconds_short, s.toInt()) else "%d:%02d".format(m, s)
     }
 
     private fun notificationIdFor(callId: String): Int =

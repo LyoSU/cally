@@ -214,11 +214,11 @@ fun OnboardingScreen(
             StepCard(
                 index = stepIdx++,
                 icon = Icons.Outlined.LockOpen,
-                title = "Дозволи системи",
-                desc = "Мікрофон, сповіщення, статус телефону, журнал дзвінків, контакти — щоб запис стартував і поряд із записом було видно, з ким говорили.",
+                title = stringResource(R.string.onboarding_step_perms),
+                desc = stringResource(R.string.onboarding_step_perms_desc),
                 done = allRuntimeGranted,
                 action = if (!allRuntimeGranted) requestPerms else null,
-                actionLabel = "Дозволити",
+                actionLabel = stringResource(R.string.onboarding_step_overlay_action),
             )
             StepCard(
                 index = stepIdx++,
@@ -281,7 +281,7 @@ fun OnboardingScreen(
             ) {
                 Icon(Icons.Outlined.Refresh, contentDescription = null)
                 Spacer(Modifier.size(8.dp))
-                Text("Перевірити статус")
+                Text(stringResource(R.string.onboarding_recheck))
             }
 
             AnimatedVisibility(
@@ -291,7 +291,7 @@ fun OnboardingScreen(
             ) {
                 Text(
                     text = stringResource(R.string.err_shizuku_denied) +
-                        " — відкрий Shizuku та надай дозвіл вручну.",
+                        stringResource(R.string.err_shizuku_denied_manual),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                 )

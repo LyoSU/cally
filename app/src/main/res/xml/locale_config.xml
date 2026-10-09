@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Per-app language list (Android 13+). Until we ship an English locale, list
-  Ukrainian only — without this the system treats `values/` as a fallback
-  and assumes any locale is supported, which produces broken auto-translate
-  hints in system Settings → Apps → Languages.
+  Per-app language list (Android 13+). Lists every locale that ships its own
+  strings so system Settings → Apps → Languages offers exactly these.
 -->
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
     <locale android:name="uk" />
 </locale-config>

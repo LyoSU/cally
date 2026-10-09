@@ -24,6 +24,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.unit.dp
 import kotlin.math.max
+import androidx.compose.ui.res.stringResource
+import dev.lyo.callrec.R
 
 /**
  * Static waveform scrubber for the playback screen.
@@ -66,6 +68,7 @@ fun WaveformView(
     val playhead = cs.primary
     val playheadGlow = cs.primary.copy(alpha = 0.18f)
 
+    val progressDescription = stringResource(R.string.waveform_progress)
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -74,7 +77,7 @@ fun WaveformView(
             // via the gesture explorer. Without this, the Canvas is silent
             // to screen readers.
             .semantics {
-                contentDescription = "Прогрес відтворення"
+                contentDescription = progressDescription
                 progressBarRangeInfo = ProgressBarRangeInfo(
                     current = progress.coerceIn(0f, 1f),
                     range = 0f..1f,

@@ -215,4 +215,27 @@
     <!-- POST_NOTIFICATIONS rationale (used by Task 18) -->
     <string name="onboarding_notif_perm_title">Allow notifications</string>
     <string name="onboarding_notif_perm_body">Needed to alert you if Shizuku stops working.</string>
+    <!-- i18n: strings previously hardcoded in Kotlin -->
+    <string name="onboarding_step_perms">Дозволи системи</string>
+    <string name="onboarding_step_perms_desc">Мікрофон, сповіщення, статус телефону, журнал дзвінків, контакти — щоб запис стартував і поряд із записом було видно, з ким говорили.</string>
+    <string name="onboarding_recheck">Перевірити статус</string>
+    <string name="err_shizuku_denied_manual"> — відкрий Shizuku та надай дозвіл вручну.</string>
+    <string name="settings_sample_rate_khz">%1$d кГц</string>
+    <string name="waveform_progress">Прогрес відтворення</string>
+    <string name="duration_seconds_short">%1$d с</string>
+    <string name="speaker_me">Я</string>
+    <string name="speaker_other">Співрозмовник</string>
+    <string name="tone_friendly">тепло</string>
+    <string name="tone_tense">напружено</string>
+    <string name="tone_excited">захоплено</string>
+    <string name="tone_sad">сумно</string>
+    <string name="tone_angry">зло</string>
+    <string name="tone_questioning">питально</string>
+    <string name="tone_neutral">нейтрально</string>
+    <string name="nonspeech_laugh">сміх</string>
+    <string name="nonspeech_sigh">зітхання</string>
+    <string name="nonspeech_pause">пауза</string>
+    <string name="nonspeech_cough">кашель</string>
+    <string name="nonspeech_music">музика</string>
+    <string name="nonspeech_background_voice">голос на фоні</string>
 </resources>
